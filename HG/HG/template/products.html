@@ -1,0 +1,37 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<script>
+function back(){
+history.back(-1);
+}
+</script>
+
+<h2>产品列表</h2>
+    <div class="container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>产品名称</th>
+            <th>年化收益</th>
+            <th>还款周期</th>
+            <th>封闭期</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for item in products%}
+        <tr id="row_{{item.id}}">
+            <td><a href="/product/{{item.id}}">{{item.name}}</a></td>
+            <td>{{item.rate}}</td>
+            <td>{{item.repaycycle.name}}</td>
+            <td>{{item.closedperiod}}{%ifequal item.closedtype 'm'%}月{%else%}天{%endifequal%}</td>            
+        </tr>
+        {%endfor%}
+        </tbody>
+    </table>
+    <br></br>
+                <input type="submit" value="返回" class="btn btn-primary" onclick="back()">
+            </p>
+    </div>
+        
+{% endblock %}

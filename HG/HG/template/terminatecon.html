@@ -1,0 +1,33 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<style>
+.form-horizontal{
+text-align:center
+
+}
+</style
+
+<div class="right">
+    <div class="new">
+        <h1>合同终止</h1>
+    </div>
+    <div class="terminatecon">
+        <div class="well"> 
+         <form class="form-horizontal"  onsubmit= "" action="/terminatecon" method="post">
+				<h3>合同终止原因</h3>
+				<input type="hidden" id="contractid" name="contractid"  value={{contract.id}}>
+				<textarea id="ter" name="comment"  cols=50 rows=5>
+				</textarea>
+				<br></br>
+				<input type="submit" value="提交"  class="btn btn-primary">
+		</form>
+		</div>
+	</div>
+</div>
+
+
+
+
+
+{% endblock %}

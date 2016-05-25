@@ -1,0 +1,56 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<style>
+.well{
+text-align:center;
+margin-left: auto;
+margin-right: auto;
+}
+</style>
+<script>
+function back(){
+history.back(-1);
+}
+</script>
+<div class="right">
+    <div class="new">
+        <h1>产品详情</h1>
+    </div>
+    <div class="showcontract">
+        <div class="well">  
+		<table  class="table" style="width: 30%;margin:auto ;font-size:20px;text-align:left; border-collapse:separate;border-spacing:10px">
+            <tbody>
+                <tr>
+                    <th>产品名称</th>
+                    <td>{{product.name}}</td>
+                </tr>
+				
+                <tr>
+                    <th>年化收益</th>
+                    <td>{{product.rate}} </td>
+                </tr>
+               
+                <tr>
+                    <th>封闭期</th>
+                    <td>{{product.closedperiod}}{%ifequal product.closedtype 'm'%}月{%else%}天{%endifequal%}</td>
+                </tr>
+                <tr>
+                    <th>返款周期</th>
+                    <td>{{product.repaycycle.name}}</td>
+                </tr>
+            </tbody>
+        </table>
+		<br></br>
+                <input type="submit" value="返回" class="btn btn-primary" onclick="back()">
+            </p>
+
+            </form>
+            </div>
+      
+
+    
+    </div> <!-- /container -->
+</div>
+
+{% endblock %}

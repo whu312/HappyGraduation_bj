@@ -1,0 +1,46 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+{% load bootstrap_toolkit %}
+<script>
+function back(){
+history.back(-1);
+}
+</script>
+<div class="right">
+    <div class="new">
+        <h1>欢迎使用理财管理查询系统</h1>
+    </div>
+    {% if create_succ %}
+        <div class="alert alert-error">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <h4>成功!</h4>保存成功
+        </div>
+    {% endif %}
+    {% if name_err %}
+        <div class="alert alert-error">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <h4>失败!</h4>该小团已存在
+        </div>
+    {% endif %}
+    <div class="well">
+        <form class="form-horizontal" action="" method="post">
+            {% csrf_token %}
+            {{ form|as_bootstrap:"horizontal" }}
+            <label class="control-label">所属大团队</label>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<select name="bigparty_id">
+            {% for item in bigparties%}
+            <option value='{{item.id}}'>{{item.name}}</option>
+            {%endfor%}
+            </select>
+            <p class="form-actions">
+                <input type="submit" value="提交" class="btn btn-primary">
+                <button class="btn btn-primary" onclick="back()">返回</button>
+            </p>
+        </form>
+        <a href="/ajust/2">小团调整</a> 
+        </div>
+</div>
+
+
+{% endblock %}

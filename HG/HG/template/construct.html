@@ -1,0 +1,32 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+<div class="right">
+    <ul>
+    {%for field in res%}
+    <li>{{field.0}}
+        <ul>
+        {%for bp in field.1%}
+        <li>{{bp.0}}
+            <ul>
+            {%for p in bp.1%}
+            <li>{{p.0}}
+                <ul>
+                {%for m in p.1%}
+                <li>{{m}}</li>
+                {%endfor%}
+                </ul>
+            </li>
+            {%endfor%}
+            </ul>
+        </li>
+        {%endfor%}
+        </ul>
+    </li>
+    {%endfor%}
+    </ul>
+</div>
+
+
+{% endblock %}

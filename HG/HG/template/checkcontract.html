@@ -1,0 +1,128 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<script>
+function makesure(){
+    var info = "确认提交？";
+    var r = confirm(info);
+    return r;
+}
+</script>
+<script>
+function back(){
+history.back(-1);
+}
+</script>
+<style>
+
+.check{
+text-align:center;
+margin-left: auto;
+margin-right: auto;
+}
+.table{
+width: 30%;
+font-size:20px;
+text-align:left; 
+border-collapse:separate;
+border-spacing:10px;
+margin-left: auto;
+margin-right: auto;
+}
+</style>
+<div class="right">
+    <div class="new">
+        <h1>合同审核</h1>
+    </div>
+    <div class="checkcontract">
+        <div class="well">  
+            
+				<table  class="table" style="width: 30%;margin:auto ;font-size:20px;text-align:left; border-collapse:separate;border-spacing:10px">
+            <tbody>
+                <tr>
+                    <th>合同编号</th>
+                    <td>{{contract.number}}</td>
+                </tr>
+				
+                <tr>
+                    <th>姓名</th>
+                    <td>{{contract.client_name}} </td>
+                </tr>
+                <tr>
+                    <th>身份证号</th>
+                    <td>{{contract.client_idcard}}  </td>
+                </tr>
+                <tr>
+                    <th>客户地址</th>
+                    <td>{{contract.address}}  </td>
+                </tr>
+                <tr>
+                    <th>开户行</th>
+                    <td>{{contract.bank}}</td>
+                </tr>
+                 <tr>
+                    <th>收款支行</th>
+                    <td>{{contract.subbranch}}</td>
+                </tr>
+                <tr>
+                    <th>收款省/直辖市</th>
+                    <td>{{contract.province}}</td>
+                </tr>
+                <tr>
+                    <th>收款市/县</th>
+                    <td>{{contract.city}}</td>
+                </tr>
+                <tr>
+                    <th>银行卡号</th>
+                    <td>{{contract.bank_card}}</td>
+                </tr>
+                <tr>
+                    <th>金额</th>
+					<td>{{contract.money}}</td>
+                </tr>
+                <tr>
+                    <th>产品</th>
+                    <td><a href="/product/{{contract.thisproduct.id}}">{{contract.thisproduct.name}}</a></td>
+                </tr>
+                <tr>
+                    <th>开始日期</th>
+                    <td>{{contract.startdate}}</td>
+                </tr>
+                <tr>
+                    <th>结束日期</th>
+					    <td>{{contract.enddate}}</td>
+                </tr>
+                <tr>
+                    <th>理财顾问</th>
+                    <td>{{contract.thismanager.name}}</td>
+                </tr>
+                <tr>
+                    <th>手续费</th>
+                    <td>{{contract.factorage}}</td>
+                </tr>
+                <tr>
+                    <th>备注</th>
+                    <td>{{contract.comment}}</td>
+                </tr>
+            </tbody>
+        </table>
+		<div class="check" >
+            <form action="/checkcontract" method="post" onsubmit="return makesure()">
+		    <input type="hidden" id="contractid" name="contractid" value={{contract.id}} />
+            <p class="form-actions" >
+			  <input type="radio" name="status" value="2" checked="checked"/>审核通过&nbsp;&nbsp;&nbsp;<br />
+				&nbsp;<input type="radio" name="status" value="1" />审核不通过<br />
+                <input type="submit" value="提交" class="btn btn-primary" />
+                
+                </p>
+            </form>
+            <button class="btn btn-primary" onclick="back()">返回</button>
+		</div>
+            </div>
+      
+
+    
+    </div> <!-- /container -->
+</div>
+
+{% endblock %}

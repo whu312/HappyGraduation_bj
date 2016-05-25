@@ -1,0 +1,55 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+
+<h2>{{day}}还款计划</h2>
+
+<div class="container">
+    返息笔数{{totalrepay.0}} &nbsp;&nbsp; 返息金额{{totalrepay.1}}<br />
+    已返笔数{{totalrepay.2}} &nbsp;&nbsp; 已返金额{{totalrepay.3}}<br />
+    待返笔数{{totalrepay.4}} &nbsp;&nbsp; 待返金额{{totalrepay.5}}<br />
+</div>
+    <div class="container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>返款日期</th>
+            <th>返款金额</th>
+            <th>状态</th>
+            <th>所属合同编号</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for item in items%}
+        <tr id="repayitem_{{item.id}}">
+            <td>{{day}}</a></td>
+            <td>{{item.repaymoney}}</td>
+            <td>
+                {%ifequal item.status 1%}
+                待还款
+                {%endifequal%}
+                {%ifequal item.status 2%}
+                已还款
+                {%endifequal%}
+                {%ifequal item.status 3%}
+                已续签
+                {%endifequal%}
+            </td>
+            <td><a href="/contract/{{item.thiscontract.id}}">{{item.thiscontract.number}}</td>
+        </tr>
+        {%endfor%}
+        </tbody>
+      </table>
+    </div>
+        
+{% endblock %}

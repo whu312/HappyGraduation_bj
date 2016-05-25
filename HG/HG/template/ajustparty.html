@@ -1,0 +1,67 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+{% load bootstrap_toolkit %}
+<script>
+function back(){
+    history.back(-1);
+}
+String.prototype.Trim = function() 
+{ 
+    return this.replace(/(^\s*)|(\s*$)/g, ""); 
+}
+function ajust()
+{
+    var r = confirm("确认调整?");
+    var bigparty_id = document.getElementById("bp_id").value;
+    var party_id = document.getElementById("p_id").value;
+    if(r==true){
+    $.ajax({
+        type: "POST",
+        data: "bigparty_id="+bigparty_id+"&party_id="+party_id,
+        url: "/ajust/2/",
+        dataType: "json",
+        cache: false,
+        success: function(data){ 
+            with (data.message)
+            {
+                if(Trim()=='true'){
+                     document.getElementById("loginfo").style.display="block";
+                }
+                else{
+                    alert("调整失败");
+                }
+            }
+         }
+        }); 
+    }
+}  
+</script>
+<div class="right">
+    <div class="new">
+        <h1>小团组织结构调整</h1>
+    </div>
+    <div id="loginfo" class="alert alert-error" style="display:none;">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <h4>成功!</h4>调整成功
+    </div>
+    <div class="well">
+            <label class="control-label">将小团队</label>
+            <select id="p_id" name="party_id">
+            {% for item in ps%}
+            <option value='{{item.id}}'>{{item.name}}</option>
+            {%endfor%}
+            </select>
+            <label class="control-label">调整到</label>
+            <select id="bp_id" name="bigparty_id">
+            {% for item in bps%}
+            <option value='{{item.id}}'>{{item.name}}</option>
+            {%endfor%}
+            </select>
+            <br /><br />
+        <button class="btn btn-primary" onclick="ajust()">确定</button>
+        <button class="btn btn-primary" onclick="back()">返回</button>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,65 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+<script>
+function makesure(){
+    var fromdate = document.getElementById("fromdate").value;
+    var todate = document.getElementById("todate").value;
+    var info = "确认提交"+fromdate+"到"+todate+"的合同的审核结果?";
+    var r = confirm(info);
+    return r;
+}
+
+</script>
+
+<h2>合同总数审核</h2>
+<div class="input-append" >
+    <form action="/lastcheck" method="get">
+    起始日期
+    <input id="fromdate" value={{fromdate}} name="fromdate" onClick="WdatePicker()">
+    终止日期
+    <input id="todate" value={{todate}} name="todate" onClick="WdatePicker()">
+    <input type="submit" value="Search">
+    </form>
+</div>
+<div class="well">  
+    <div><h4>总金额为{{totalmoney}}元</h4></div>
+    <form class="form-horizontal" action="/lastcheck" method="post" onsubmit="return makesure()">
+    <input style="display:none;" id="fromdatehiden" name="fromdate" value={{fromdate}} />
+     <input style="display:none;" id="todatehiden" name="todate" value={{todate}} />
+    <input type="radio" name="status" value="2" checked="checked"/>审核通过<br />
+	<input type="radio" name="status" value="1" />审核不通过<br />
+    <input type="submit" value="提交" class="btn btn-primary">
+    </form>
+    <div class="container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>合同编号</th>
+            <th>合同金额</th>
+            <th>合同状态</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for item in cons%}
+        <tr id="row_{{item.id}}">
+            <td><a href="/contract/{{item.id}}">{{item.number}}</a></td>
+            <td>{{item.money}}</td>
+            <td>初审通过</td>         
+        </tr>
+        {%endfor%}
+        </tbody>
+      </table>
+    </div>
+</div>
+{% endblock %}

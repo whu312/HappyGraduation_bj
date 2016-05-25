@@ -1,0 +1,150 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<link href="static/css/bootstrap.css" rel="stylesheet" type="text/css" />
+<script>
+function GoTo(var1){
+ var PageNo=document.getElementById("PageNo").value;
+ if (PageNo <= var1){
+ var url = "";
+ url = 'querycontracts?page='+PageNo;
+ window.open(url, '_self');
+}
+else{
+ window.alert('请输入正确页码');
+}
+}
+function alter(var1){
+ var id = var1;
+ var url = "";
+ url = 'altercontract?contractid='+id;
+ window.open(url,'_self');
+
+}
+function check(var1){
+ var id = var1;
+ var url = "";
+ url = 'checkcontract?contractid='+id;
+ window.open(url,'_self');
+
+}
+function terminate(var1){
+ var id = var1;
+ var url = "";
+ url = 'terminatecon?contractid='+id;
+ window.open(url,'_self');
+
+}
+
+function rollback(var1){
+ var id = var1;
+ var url = "";
+ url = 'rollbackcontract?contractid='+id;
+ window.open(url,'_self');
+
+}
+function count(var1){
+var num = var1;
+if(num == 0){
+window.alert("没有相关合同！请重新输入");
+}
+
+}
+
+</script>
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+.fenye{
+text-align:center;
+}
+</style>
+
+<body onload="count({{contract_size}})">
+<h2>合同查询</h2>
+<div class="input-append" >
+ <form class="form-horizontal" action="/querycontracts" method="post">
+    <input type="text" class="span2 search-query" name="number" placeholder="按合同编号、客户姓名查询" style="width:218px">
+        <input type="submit" class="btn" value = "Search">
+</form>
+</div>
+    <div class="container">
+   
+      <table class="table">
+        <thead>
+          <tr>
+            <th>合同编号</th>
+            <th>姓名</th>
+            <th>身份证号</th>
+            <th>开户行</th>
+            <th>银行卡号</th>
+            <th>产品</th>
+            <th>金额</th>
+            <th>签约日</th>
+            <th>到期日</th>
+            <th>理财顾问</th>
+			<th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+
+
+        {%for contract in contracts%}
+        <tr>
+            <td><a href="/contract/{{contract.id}}">{{contract.number}}</a></td>
+            <td>{{contract.client_name}}</td>
+            <td>{{contract.client_idcard}}</td>
+		    <td>{{contract.bank}}</td>
+			<td>{{contract.bank_card}}</td>
+            <td><a href="/product/{{contract.thisproduct.id}}">{{contract.thisproduct.name}}</a></td>
+			<td>{{contract.money}}</td>
+			<td>{{contract.startdate}}</td>
+			<td>{{contract.enddate}}</td>
+            <td>{{contract.thismanager.name}}</td>
+			<td>
+			{% ifequal user.id contract.operator_id %}
+			{% ifequal contract.status 1 %}
+			<input type="button" value="修改"  style="width:40px; height:20px; margin:0px;padding:0px;" onclick="alter({{contract.id}})">
+			{% endifequal %}
+			{% ifequal contract.status 2 %}
+			<input type="button" value="修改"  style="width:40px; height:20px; margin:0px;padding:0px;" onclick="alter({{contract.id}})">
+			{% endifequal %}
+			{% endifequal %}
+			{% ifequal contract.status 4 %}
+			<input type="button" value="终止"  style="width:40px; height:20px; margin:0px;padding:0px;" onclick="terminate({{contract.id}})">
+			{% endifequal %}
+			{% ifequal  contract.status 1 %}
+			<input type="button" value="审核" style="width:40px; height:20px; margin:0px;padding:0px;" onclick="check({{contract.id}})">
+			{% endifequal %}
+			<!--
+			{% ifequal  contract.status 2 %}
+			<input type="button" value="回退" style="width:40px; height:20px; margin:0px;padding:0px;" onclick="rollback({{contract.id}})">
+			{% endifequal %} 
+			-->
+			</td>
+			
+        </tr>
+        {%endfor%}
+        </tbody>
+      </table>
+	  <div class='fenye' >
+	  {%ifnotequal curpage 1 %}
+		<a href="/querycontracts?page={{curpage}}&&pagetype=pageup">上一页</a>
+		{% endifnotequal %}
+		第{{curpage}}/{{allpage}}
+		{% ifnotequal curpage allpage %}
+		<a href="/querycontracts?page={{curpage}}&&pagetype=pagedown">下一页</a>
+		{% endifnotequal %}
+		{% ifnotequal allpage 1 %}
+		<p>跳转到第<input id='PageNo' style="width:30px;"> 页 <input type='button' value='GO' onclick="GoTo({{allpage}})"></p>
+		{% endifnotequal %}
+		</div>
+    </div>
+
+</body>
+</html>
+        
+{% endblock %}

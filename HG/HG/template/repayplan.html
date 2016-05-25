@@ -1,0 +1,59 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+
+<h2>还款计划</h2>
+<div class="input-append" >
+    <form action="/repayplan" method="get">
+    起始日期
+    <input id="fromdate" value={{fromdate}} name="fromdate" onClick="WdatePicker()">
+    终止日期
+    <input id="todate" value={{todate}} name="todate" onClick="WdatePicker()">
+    <input type="submit" value="Search">
+    </form>
+</div>
+<div class="container">
+    返息笔数{{totalrepay.0}} &nbsp;&nbsp; 返息金额{{totalrepay.1}}<br />
+    已返笔数{{totalrepay.2}} &nbsp;&nbsp; 已返金额{{totalrepay.3}}<br />
+    待返笔数{{totalrepay.4}} &nbsp;&nbsp; 待返金额{{totalrepay.5}}<br />
+</div>
+    <div class="container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>返款笔数</th>
+            <th>返款金额</th>
+            <th>已返笔数</th>
+            <th>已返金额</th>
+            <th>待返笔数</th>
+            <th>待返金额</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for item in days%}
+        <tr id="day_{{item.0}}">
+            <td><a href="/dayrepay/{{item.0}}">{{item.0}}</a></td>
+            <td>{{item.1.0}}</td>
+            <td>{{item.1.1}}</td>
+            <td>{{item.1.2}}</td>
+            <td>{{item.1.3}}</td>
+            <td>{{item.1.4}}</td>
+            <td>{{item.1.5}}</td>
+        </tr>
+        {%endfor%}
+        </tbody>
+      </table>
+    </div>
+        
+{% endblock %}

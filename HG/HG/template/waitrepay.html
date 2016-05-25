@@ -1,0 +1,154 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+<script>
+String.prototype.Trim = function() 
+{ 
+    return this.replace(/(^\s*)|(\s*$)/g, ""); 
+}
+function getbigpartylist(field_id){
+    if(field_id=="-1"){
+        document.getElementById("bigparty").innerHTML = "";
+        document.getElementById("party").innerHTML = "";
+        document.getElementById("manager").innerHTML = "";
+    }
+    $.ajax({
+        type: "GET",
+        data: "field_id="+field_id,
+        url: "/getbigparties/waitrepay",
+        dataType: "json",
+        cache: false,
+        success: function(data){ 
+            with (data.message)
+            {
+                if(Trim()=='true'){
+                    if(field_id!="-1"){
+                        var partystr = "大团<select id='bigparty_select' name='bigparty_id' onchange='getpartylist(this.options[this.options.selectedIndex].value)'><option value='-1' selected>--</option>";
+                        for(var i=0;i<data.bigparties.length;i++){
+                            partystr += "<option value='"+data.bigparties[i][0]+"'>"+data.bigparties[i][1]+"</option>";
+                        }
+                        partystr += "</selected>";
+                        document.getElementById("bigparty").innerHTML = partystr;
+                    }
+                    document.getElementById("cnt").innerHTML = data.cnt;
+                    document.getElementById("totalm").innerHTML = data.totalmoney;
+                }
+            }
+         }
+    }); 
+}
+function getpartylist(bigparty_id){
+    if(bigparty_id=="-1"){
+        document.getElementById("party").innerHTML = "";
+        document.getElementById("manager").innerHTML = "";
+    }    
+    $.ajax({
+        type: "GET",
+        data: "bigparty_id="+bigparty_id,
+        url: "/getparties/waitrepay",
+        dataType: "json",
+        cache: false,
+        success: function(data){ 
+            with (data.message)
+            {
+                if(Trim()=='true'){
+                    if(bigparty_id!="-1"){
+                        var partystr = "小团<select id='party_select' name='party_id' onchange='getmanagerlist(this.options[this.options.selectedIndex].value)'><option value='-1' selected>--</option>";
+                        for(var i=0;i<data.parties.length;i++){
+                            partystr += "<option value='"+data.parties[i][0]+"'>"+data.parties[i][1]+"</option>";
+                        }
+                        partystr += "</selected>";
+                        document.getElementById("party").innerHTML = partystr;
+                    }
+                    document.getElementById("cnt").innerHTML = data.cnt;
+                    document.getElementById("totalm").innerHTML = data.totalmoney;
+                }
+            }
+         }
+    }); 
+}
+
+function getmanagerlist(party_id){
+    if(party_id=="-1"){
+        document.getElementById("manager").innerHTML = "";
+    }
+    $.ajax({
+        type: "GET",
+        data: "party_id="+party_id,
+        url: "/getmanagers/waitrepay",
+        dataType: "json",
+        cache: false,
+        success: function(data){ 
+            with (data.message)
+            {
+                if(Trim()=='true'){
+                    if(party_id!="-1"){
+                        var managerstr = "经理<select id='manager_select' name='manager_id' onchange='getpersoncnt(this.options[this.options.selectedIndex].value)'><option value='-1' selected>--</option>";
+                        for(var i=0;i<data.managers.length;i++){
+                            managerstr += "<option value='"+data.managers[i][0]+"'>"+data.managers[i][1]+"</option>";
+                        }
+                        managerstr += "</selected>";
+                        document.getElementById("manager").innerHTML = managerstr;
+                    }
+                    document.getElementById("cnt").innerHTML = data.cnt;
+                    document.getElementById("totalm").innerHTML = data.totalmoney;
+                }
+            }
+         }
+    }); 
+}
+
+
+function getpersoncnt(manager_id){
+    $.ajax({
+        type: "GET",
+        data: "manager_id="+manager_id,
+        url: "/getpersoncnt/waitrepay",
+        dataType: "json",
+        cache: false,
+        success: function(data){ 
+            with (data.message)
+            {
+                if(Trim()=='true'){
+                    document.getElementById("cnt").innerHTML = data.cnt;
+                    document.getElementById("totalm").innerHTML = data.totalmoney;
+                }
+            }
+         }
+    });
+}
+
+</script>
+
+
+<h2>待收统计</h2>
+<div class="input-append" >
+    <p id="field">职场
+    <select id="field_select" name="field_id" onchange="getbigpartylist(this.options[this.options.selectedIndex].value)">
+        <option value="-1" selected>--</option>
+        {%for field in fields%}
+        <option value={{field.id}}>{{field.name}}</option>
+        {%endfor%}
+    </select>
+    </p>
+    <p id="bigparty">
+    </p>
+    <p id="party">
+    </p>
+    <p id="manager">
+    </p>
+</div>
+<div class="container">
+    <h3>共计<m id="cnt">{{cnt}}</m>笔 &nbsp;&nbsp; 共<m id="totalm">{{totalmoney}}</m></h3><br />
+</div>
+
+        
+{% endblock %}

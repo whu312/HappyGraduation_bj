@@ -1,0 +1,152 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+<script>
+String.prototype.Trim = function() 
+{ 
+    return this.replace(/(^\s*)|(\s*$)/g, ""); 
+}
+function repay(myid){
+    var r = confirm("确认还款?");
+    if(r==true){
+    $.ajax({
+        type: "POST",
+        data: "repayitem_id="+myid,
+        url: "/statusrepayitem/1/",
+        dataType: "json",
+        cache: false,
+        success: function(data){ 
+            with (data.message)
+            {
+                if(Trim()=='true'){
+                    document.getElementById("status").innerHTML="该还款项已完成";
+                    alert(data.info);
+                }
+                else{
+                    alert(data.info);
+                }
+            }
+         }
+        }); 
+    }
+}  
+function renewal(myid,type_id){
+    
+    var num = document.getElementById("renewal_num").value;
+    if(num==""){
+        alert("请输入续签合同号");
+    }
+    else{
+        var r = confirm("确认续签?");
+        if(r==true){
+            $.ajax({
+                type: "POST",
+                data: "repayitem_id="+myid+"&renewal_num="+num,
+                url: "/statusrepayitem/2/",
+                dataType: "json",
+                cache: false,
+                success: function(data){ 
+                    with (data.message)
+                    {
+                        if(Trim()=='true'){
+                            document.getElementById("status").innerHTML="该还款项已完成";
+                            alert(data.info);
+                        }
+                        else{
+                            alert(data.info);
+                        }
+                    }
+                }
+            });
+        } 
+    }
+} 
+
+function clickrenewal(){ 
+    document.getElementById("renewal_area").style.display="block";
+} 
+
+</script>
+<script>
+function back(){
+history.back(-1);
+}
+</script>
+<style>
+.well{
+text-align:center;
+margin-left: auto;
+margin-right: auto;
+}
+</style>
+<div class="right">
+    <div class="new">
+        <h1>还款项</h1>
+    </div>
+    <div class="well">
+        <table  class="table" style="width: 30%;margin:auto ;font-size:20px;text-align:left; border-collapse:separate;border-spacing:10px">
+            <tbody>
+                <tr>
+                    <th>还款日期</th>
+                    <td>{{repayitem.repaydate}}</td>
+                </tr>
+                <tr>
+                    <th>还款金额</th>
+                    <td>{{repayitem.repaymoney}}</td>
+                </tr>
+                <tr>
+                    <th>所属合同编号</th>
+                    <td><a href="/contract/{{repayitem.thiscontract.id}}">{{repayitem.thiscontract.number}}</a></td>
+                </tr>
+                <tr>
+                    <th>合同金额</th>
+                    <td>{{repayitem.thiscontract.money}}</td>
+                </tr>
+                 <tr>
+                    <th>合同日期</th>
+                    <td>{{repayitem.thiscontract.startdate}}到{{repayitem.thiscontract.enddate}}</td>
+                </tr>
+                <tr>
+                    <th>所买产品</th>
+                    <td><a href="/product/{{repayitem.thiscontract.thisproduct.id}}">{{repayitem.thiscontract.thisproduct.name}}</a></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div id="status">
+            <br /><br />
+            {%ifequal repayitem.status 1%}
+            <button class="btn btn-primary" onclick="repay({{repayitem.id}})">还款</button> <br /><br />
+            {%ifnotequal repayitem.repaytype 1%}
+            <form action="/renewalcontract/{{repayitem.id}}" method="get">
+                <input type="submit" class="btn btn-primary" value="续签" />
+            </form>
+            {%endifnotequal%}
+            {%endifequal%}
+            {%ifequal repayitem.status 3%}
+            <label>该还款项已续签</label>
+            <button class="btn btn-primary" onclick="repay({{repayitem.id}})">还款</button><br />
+    
+            {%endifequal%}
+            {%ifequal repayitem.status 2%}
+            <label>该还款项已完成</label>
+            {%endifequal%}
+            {%ifequal repayitem.status 4%}
+            <label>该还款项已完成</label>
+            {%endifequal%}
+        </div>
+            <input type="submit" value="返回" class="btn btn-primary" onclick="back()">
+    </div>
+
+    
+{% endblock %}

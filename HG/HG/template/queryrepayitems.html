@@ -1,0 +1,173 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+<script>
+String.prototype.Trim = function() 
+{ 
+    return this.replace(/(^\s*)|(\s*$)/g, ""); 
+}
+function repay(myid,type_id){
+    var r = confirm("确认还款?");
+    if(r==true){
+    $.ajax({
+        type: "POST",
+        data: "repayitem_id="+myid,
+        url: "/statusrepayitem/1/",
+        dataType: "json",
+        cache: false,
+        success: function(data){ 
+            with (data.message)
+            {
+                if(Trim()=='true'){
+                    if(type_id=="1"||type_id=="4"){
+                        var me = document.getElementById("operate_"+myid);
+                        me.innerHTML= "";
+                    }
+                    else
+                    {
+                        var me = document.getElementById("row_"+myid);
+                        me.innerHTML= "";
+                    }
+                    alert(data.info);
+                }
+                else{
+                    alert(data.info);
+                }
+            }
+         }
+        }); 
+    }
+}  
+function renewal(type_id){
+    var num = document.getElementById("renewal_num").value;
+    var myid = document.getElementById("tmpitem_id").value;
+    if(num==""){
+        alert("请输入续签合同号");
+        return false;
+    }
+    else{
+        var r = confirm("确认续签?");
+        if(r==true){
+            $.ajax({
+                type: "POST",
+                data: "repayitem_id="+myid,
+                url: "/statusrepayitem/2/",
+                dataType: "json",
+                cache: false,
+                success: function(data){ 
+                    with (data.message)
+                    {
+                        if(Trim()=='true'){
+                            if(type_id=="1"||type_id=="4"){
+                                var me = document.getElementById("operate_"+myid);
+                                me.innerHTML= "";
+                            }
+                            else
+                            {
+                                var me = document.getElementById("row_"+myid);
+                                me.innerHTML= "";
+                            }
+                            alert(data.info);
+                        }
+                        else{
+                            alert(data.info);
+                        }
+                    }
+                }
+            }); 
+        }
+    }
+    document.getElementById("renewal_area").style.display="none";
+} 
+
+function clickrenewal(item_id){ 
+    document.getElementById("renewal_area").style.display="block";
+    document.getElementById("tmpitem_id").value = item_id;
+} 
+function setcontract_id()
+{
+    var c_id = document.getElementById("input_id").value;
+    document.getElementById("hidden_id").value = c_id;
+}
+</script>
+{%ifequal type_id "1"%}
+<h2>还款查询</h2>
+{%endifequal%}
+{%ifequal type_id "2"%}
+<h2>到期续单</h2>
+{%endifequal%}
+{%ifequal type_id "3"%}
+<h2>还款确认</h2>
+{%endifequal%}
+{%ifequal type_id "4"%}
+<h2>全部还款查询</h2>
+{%endifequal%}
+<div class="input-append" >
+    <form action="/queryrepayitems/{{type_id}}" method="get">
+    起始日期
+    <input id="fromdate" name="fromdate" value={{fromdate}} onClick="WdatePicker()">
+    终止日期
+    <input id="todate" name="todate" value={{todate}} onClick="WdatePicker()">
+    <input  id="input_id" type="text" name="contract_id" placeholder="合同编号">
+    <input type="submit" value="Search">
+    </form>
+    {%ifequal type_id "3"%}
+    <form action="/outputfile/{{type_id}}" method="get" target="_blank" onsubmit="setcontract_id()">
+    <input name="fromdate" style="display:none;" value={{fromdate}}>
+    <input name="todate" style="display:none;" value={{todate}}>
+    <input id="hidden_id" style="display:none;" type="text" name="contract_id" placeholder="合同编号">
+    <input type="submit" value="导出excel">
+    </form>
+    {%endifequal%}
+</div>
+    <div class="container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>还款日期</th>
+            <th>还款金额</th>
+            <th>操作</th>
+            <th>明细</th>
+            <th>所属合同编号</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for item in repayitems%}
+        <tr id="row_{{item.id}}">
+            <td>{{item.repaydate}}</td>
+            <td>{{item.repaymoney}}</td>
+            <td>
+                <div id="operate_{{item.id}}">
+                {%ifequal item.status 1%}
+                <button class="btn" onclick="repay({{item.id}},{{type_id}})">还款</button>
+                {%ifequal item.repaytype 2%}
+                <a href="/renewalcontract/{{item.id}}" class="btn">续签</a>
+                {%endifequal%}
+                {%ifequal item.repaytype 3%}
+                <a href="/renewalcontract/{{item.id}}" class="btn">续签</a>
+                {%endifequal%}
+                {%endifequal%}
+                {%ifequal item.status 3%}
+                <button class="btn" onclick="repay({{item.id}},{{type_id}})">还款</button>
+                {%endifequal%}
+                </div>
+            </td>
+            <td><a href="/repayitem/{{item.id}}">详情</a></td>
+            <td><a href="/contract/{{item.thiscontract.id}}">{{item.thiscontract.number}}</a></td>            
+        </tr>
+        {%endfor%}
+        </tbody>
+      </table>
+    </div>
+        
+{% endblock %}

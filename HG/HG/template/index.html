@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+    <title>理财</title>
+  <head>
+    <meta charset="utf-8">
+    <title>管理员登录</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Joychao <joy@joychao.cc>">    
+  </head>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link class="bootstrap library" rel="stylesheet" type="text/css" href="http://sandbox.runjs.cn/js/sandbox/bootstrap-2.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/login.css">
+	<script class="bootstrap library" src="http://sandbox.runjs.cn/js/sandbox/jquery/jquery-1.7.2.min.js" type="text/javascript"></script>
+	<script class="bootstrap library" src="http://sandbox.runjs.cn/js/sandbox/bootstrap-2.2.0/js/bootstrap.min.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div class="container">
+        <section class="loginBox row-fluid">
+          <section class="span7 left">
+            <h2>管理员登录</h2>
+            <div id="login">    
+            <form action="/login" method="post">
+                <input type="text" id="lname" name="lname" placeholder="用户名" value={{lname}}>
+                <br>
+                <input type="password" id="lpasswd" name="lpasswd" placeholder="密码" value={{lpasswd}}>
+                <br>
+                <section class="span1"><input type="submit" value=" 登录 " class="btn btn-primary"></section>
+                <br>
+                <br>
+                {%if logfail%}
+                用户名或密码错误，请重新登录...
+                <br>
+                {%endif%}
+            </form>
+            </div>
+          </section>
+          <section class="span5 right">
+            <h2>理财统计</h2>
+            <section>
+              <p>本系统主要是为了统计理财信息，用于利息的计算和到期提醒...</p>
+            </section>
+          </section>
+        </section><!-- /loginBox -->
+    </div> <!-- /container -->
+  </body>
+</html>

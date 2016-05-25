@@ -1,0 +1,47 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<div class="right">
+    <div class="new">
+        <h1>合同回退</h1>
+    </div>
+    <div class="rollbackcontract ">
+        <div class="well">  
+            <form class="form-horizontal" action="/rollbackcontract " method="post">
+				<input type="hidden" id="contractid" name="contractid" placeholder="合同id" value={{contract.id}}>
+                <label class="control-label">合同编号</label><input type="text" id="number" name="number" placeholder="合同编号" value={{contract.number}} readonly="readonly">
+				<br /><br />
+                <label class="control-label">姓名</label><input type="text" id="client_name" name="client_name" placeholder="姓名" value={{contract.client_name}} readonly="readonly">
+				<br /><br />
+			   <label class="control-label">身份证号</label><input type="text" id="client_idcard" name="client_idcard" placeholder="身份证号" value={{contract.client_idcard}} readonly="readonly">
+				<br /><br />
+                <label class="control-label">开户行</label><input type="text" id="bank" name="bank" placeholder="开户行" value={{contract.bank}} readonly="readonly">
+				<br /><br />
+			   <label class="control-label">银行卡号</label><input type="text" id="bank_card" name="bank_card" placeholder="银行卡号" value={{contract.bank_card}} readonly="readonly">
+				<br /><br />
+                <label class="control-label">金额</label><input type="text" id="money" name="money" placeholder="金额" value={{contract.money}} readonly="readonly">
+				<br /><br />
+			 <label class="control-label">产品</label><input type="text" id="product_id" name="product_id" placeholder="产品" value={{contract.thisproduct.name}} readonly="readonly">
+            <br /><br />
+            <label class="control-label">开始日期</label>
+            <input id="startdate" name="startdate" placeholder="开始日期" value={{contract.startdate}} readonly="readonly" >
+			 <br /><br />
+           <label class="control-label">截至日期</label>
+            
+            <input id="enddate" name="enddate" placeholder="截止日期" value={{contract.enddate}}  readonly="readonly" >
+            <br /><br />
+            <label class="control-label">理财顾问</label><input type="text" id="manager_id" name="manager_id" placeholder="理财顾问" value={{contract.thismanager.name}} readonly="readonly">
+
+            <p class="form-actions">
+                <input type="submit" value="审核回退" class="btn btn-primary">
+            </p>
+
+            </form>
+            </div>
+      
+
+    
+    </div> <!-- /container -->
+</div>
+
+{% endblock %}

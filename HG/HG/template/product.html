@@ -1,0 +1,19 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+
+<h2>产品详情</h2>
+    <label> 产品名称：{{product.name}}</label>
+    <label> 年化收益：{{product.rate}}%</label>
+    <label> 还款周期：{{product.repaycycle.name}}</label>
+    <label>封闭期：{{product.closedperiod}}{%ifequal product.closedtype 'm'%}月{%else%}天{%endifequal%}</label>
+{% endblock %}

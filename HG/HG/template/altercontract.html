@@ -1,0 +1,187 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+<script>
+function back(){
+history.back(-1);
+}
+
+function checknumber(){
+	var number = $("#number").val();
+	$.ajax({
+		type:"POST" ,
+		url:"/checknumber",
+		data:"number=" + number ,
+		cache: false,
+		success: function(result){
+		if(result == 1)
+		{
+			$("#number_tip").html("该合同号已存在！"); 
+		
+		}
+		}
+		
+		})
+
+}
+function checknum(){
+	var number = $("#number").val();
+	if(RuleCheck2(number)){
+	return true;
+	}
+	else{
+	return false;
+	}
+}
+
+function checkcard(){
+	var card = $("#client_idcard").val(); 
+	if(RuleCheck1(card)){
+	return true;
+	}
+	else{
+	return false;
+	}
+}
+RuleCheck2 = function (string) {  
+    var pattern = /^\d{10}$/;  
+    if (pattern.test(string)) {  
+        return true;  
+    }  
+    return false;  
+};
+
+RuleCheck1 = function (string) {  
+    var pattern = /^(\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$/;  
+    if (pattern.test(string)) {  
+        return true;  
+    }  
+    return false;  
+}; 
+</script >
+<style>
+input{
+float:left;
+}
+</style>
+<div class="right">
+    <div class="new">
+        <h1>合同修改</h1>
+    </div>
+	    {% if create_succ %}
+        <div class="alert alert-error">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <h4>成功!</h4>修改成功
+        </div>
+       {% endif %}
+	   	   {% ifequal create_succ False %}
+        <div class="alert alert-error">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <h4>修改失败!</h4>合同号已存在！
+        </div>
+       {% endifequal %}
+    <div class="checkcontract">
+        <div class="well">  
+            <form class="form-horizontal"  onsubmit= " return checknum()&&checkcard();" action="/altercontract" method="post">
+				<input type="hidden" id="contractid" name="contractid" placeholder="合同id" value={{contract.id}}>
+                <label class="control-label">合同编号</label><input type="text" onblur="checknumber()" id="number" name="number" placeholder="合同编号" style="float:left" value={{contract.number}}><div id="number_tip" style=" float:left;color:#c00; font-weight:bold; font-size:18px">  </div>  
+				<br /><br />
+                <label class="control-label">姓名</label><input type="text" id="client_name" name="client_name" placeholder="姓名" value={{contract.client_name}}>
+				
+				<br /><br />
+			   <label class="control-label">身份证号</label><input type="text" style="float:left" id="client_idcard" name="client_idcard" placeholder="身份证号" value={{contract.client_idcard}}>
+			   <div id="idcard_tip" style=" float:left;color:#c00; font-weight:bold; font-size:18px">  </div>  
+               <br /><br />
+                <label class="control-label">客户地址</label><input type="text" id="address" name="address" placeholder="家庭地址" value={{contract.address}}>
+				<br /><br />
+                <label class="control-label">开户行</label><input type="text" id="bank" name="bank" placeholder="开户行" value={{contract.bank}}>
+				<br /><br />
+                <label class="control-label">收款支行</label><input type="text" id="subbranch" name="subbranch" placeholder="收款支行" value={{contract.subbranch}}>
+				<br /><br />
+                <label class="control-label">收款省/直辖市</label><input type="text" id="province" name="province" placeholder="省/直辖市" value={{contract.province}}>
+				<br /><br />
+                <label class="control-label">收款市/县</label><input type="text" id="city" name="city" placeholder="市/县" value={{contract.city}}>
+				<br /><br />
+			   <label class="control-label">银行卡号</label><input type="text" id="bank_card" name="bank_card" placeholder="银行卡号" value={{contract.bank_card}}>
+				<br /><br />
+                <label class="control-label">金额</label><input type="text" id="money" name="money" placeholder="金额" value={{contract.money}}>
+				<br /><br />
+			 <label class="control-label">产品</label>
+			<select name="product_id">
+			<option value='{{contract.number.name}}'>{{contract.thisproduct.name}}</option>
+            {%for item in products%}
+            <option value='{{item.id}}'>{{item.name}}</option>
+            {%endfor%}
+            </select>
+            <br /><br />
+            <label class="control-label">开始日期</label>
+            <input id="startdate" name="startdate" placeholder="开始日期" value={{contract.startdate}} onClick="WdatePicker()">
+			 <br /><br />
+           <label class="control-label">截至日期</label>
+            
+            <input id="enddate" name="enddate" placeholder="截止日期" value={{contract.enddate}} onClick="WdatePicker()">
+            <br /><br />
+            <label class="control-label">理财顾问</label>
+            <select name="manager_id">
+		    <option value='{{contract.number.name}}'>{{contract.thismanager.name}}</option>
+            {%for item in managers%}
+            <option value='{{item.id}}'>{{item.name}}</option>
+            {%endfor%}
+            </select>
+            <br /><br />
+            <label class="control-label">手续费</label>
+            <input type="text" id="factorage" name="factorage" placeholder="手续费" value={{contract.factorage}}>
+            <br /><br />
+            <label class="control-label">备注</label>
+            <input type="text" id="comment" name="comment" placeholder="备注" value={{contract.comment}}>
+            <p class="form-actions">
+                <input type="submit" value="提交"  class="btn btn-primary">&nbsp;&nbsp;&nbsp;
+                <button class="btn btn-primary" onclick="back()">返回</button>
+            </p>
+
+        </form>
+            </div>
+      <script type="application/javascript" > 
+		$("#number").blur("blur",function(){  
+        var number = $("#number").val();  
+        if(number == ""){  
+            $("#number_tip").html("合同编号不能为空");  
+        }  
+        else  
+        {  
+            if(RuleCheck2(number)){  
+                $("#number_tip").html("");  
+            }  
+            else  
+            {  
+                $("#number_tip").html("请输入10位合同编号！");  
+            };  
+        }; 
+		 
+    }); 
+	
+	$("#client_idcard").blur("blur",function(){  
+        var number = $("#client_idcard").val();  
+        if(number == ""){  
+            $("#idcard_tip").html("身份证号不能为空");  
+        }  
+        else  
+        {  
+            if(RuleCheck1(number)){  
+                $("#idcard_tip").html("");  
+            }  
+            else  
+            {  
+                $("#idcard_tip").html("请输入正确身份证号码！");  
+            };  
+        };  
+    }); 
+	</script>
+
+    
+    </div> <!-- /container -->
+</div>
+
+{% endblock %}

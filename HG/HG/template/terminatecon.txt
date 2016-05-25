@@ -1,0 +1,26 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<div class="right">
+    <div class="new">
+        <h1>合同终止</h1>
+    </div>
+    <div class="terminatecon">
+        <div class="well"> 
+         <form class="form-horizontal"  onsubmit= "" action="/terminatecon" method="post">
+				<input type="hidden" id="contractid" name="contractid"  value={{contract.id}}>
+				<textarea id="ter" name="terminatecon" placeholder="请输入合同终止原因">
+				</textarea>
+				<input type="submit" value="提交">
+		</form>
+		</div>
+	</div>
+</div>
+
+
+
+
+
+{% endblock %}

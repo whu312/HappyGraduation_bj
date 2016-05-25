@@ -1,0 +1,101 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<link href="static/css/bootstrap.css" rel="stylesheet" type="text/css" />
+<script>
+function GoTo(var1){
+ var PageNo=document.getElementById("PageNo").value;
+if (PageNo <= var1){
+ var url = "";
+ url = 'querycontracts?page='+PageNo;
+ window.open(url, '_self');
+}
+else{
+ window.alert('请输入正确页码');
+}
+}
+
+function rollback(var1){
+ var id = var1;
+ var url = "";
+ url = 'rollbackcontract?contractid='+id;
+ window.open(url,'_self');
+
+}
+
+
+</script>
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+.fenye{
+text-align:center;
+}
+</style>
+
+<body>
+<h2>合同回退</h2>
+
+    <div class="container">
+   
+      <table class="table">
+        <thead>
+          <tr>
+            <th>合同编号</th>
+            <th>姓名</th>
+            <th>身份证号</th>
+            <th>开户行</th>
+            <th>银行卡号</th>
+            <th>产品</th>
+            <th>金额</th>
+            <th>签约日</th>
+            <th>到期日</th>
+            <th>理财顾问</th>
+			<th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for contract in contracts%}
+         {% ifequal  contract.status 2 %}
+        <tr>
+            <td>{{contract.number}}</td>
+            <td>{{contract.client_name}}</td>
+            <td>{{contract.client_idcard}}</td>
+		    <td>{{contract.bank}}</td>
+			<td>{{contract.bank_card}}</td>
+            <td>{{contract.thisproduct.name}}</td>
+			<td>{{contract.money}}</td>
+			<td>{{contract.startdate}}</td>
+			<td>{{contract.enddate}}</td>
+            <td>{{contract.thismanager.name}}</td>
+			<td>
+
+			<input type="button" value="回退" style="width:40px; height:20px; margin:0px;padding:0px;" onclick="rollback({{contract.id}})">
+			
+			</td>
+			
+        </tr>
+		{% endifequal %}
+        {%endfor%}
+        </tbody>
+      </table>
+	  <div class='fenye' >
+	  {%ifnotequal curpage 1 %}
+		<a href="/rollbackcontracts?page={{curpage}}&&pagetype=pageup">上一页</a>
+		{% endifnotequal %}
+		第{{curpage}}/{{allpage}}
+		{% ifnotequal curpage allpage %}
+		<a href="/rollbackcontracts?page={{curpage}}&&pagetype=pagedown">下一页</a>
+		{% endifnotequal %}
+		<p>跳转到第<input id='PageNo' style="width:30px;"> 页 <input type='button' value='GO' onclick="GoTo({{allpage}})"></p>
+		
+		</div>
+    </div>
+
+</body>
+</html>
+        
+{% endblock %}
