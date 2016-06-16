@@ -64,13 +64,7 @@ text-align:center;
 </style>
 
 <body onload="count({{contract_size}})">
-<h2>合同查询</h2>
-<div class="input-append" >
- <form class="form-horizontal" action="/querycontracts" method="post">
-    <input type="text" class="span2 search-query" name="number" placeholder="按合同编号、客户姓名查询" style="width:218px">
-        <input type="submit" class="btn" value = "Search">
-</form>
-</div>
+<h2>合同修改</h2>
     <div class="container">
    
       <table class="table">
@@ -105,43 +99,14 @@ text-align:center;
 			<td>{{contract.enddate}}</td>
             <td>{{contract.thismanager.name}}</td>
 			<td>
-			{% ifequal user.id contract.operator_id %}
-			{% ifequal contract.status 1 %}
+            {%ifequal contract.status 1%}
 			<input type="button" value="修改"  style="width:40px; height:20px; margin:0px;padding:0px;" onclick="alter({{contract.id}})">
-			{% endifequal %}
-			{% ifequal contract.status 2 %}
-			<input type="button" value="修改"  style="width:40px; height:20px; margin:0px;padding:0px;" onclick="alter({{contract.id}})">
-			{% endifequal %}
-			{% endifequal %}
-			{% ifequal contract.status 4 %}
-			<input type="button" value="终止"  style="width:40px; height:20px; margin:0px;padding:0px;" onclick="terminate({{contract.id}})">
-			{% endifequal %}
-			{% ifequal  contract.status 1 %}
-			<input type="button" value="审核" style="width:40px; height:20px; margin:0px;padding:0px;" onclick="check({{contract.id}})">
-			{% endifequal %}
-			<!--
-			{% ifequal  contract.status 2 %}
-			<input type="button" value="回退" style="width:40px; height:20px; margin:0px;padding:0px;" onclick="rollback({{contract.id}})">
-			{% endifequal %} 
-			-->
-			</td>
-			
+            {%endifequal%}
+            </td>
         </tr>
         {%endfor%}
         </tbody>
       </table>
-	  <div class='fenye' >
-	  {%ifnotequal curpage 1 %}
-		<a href="/querycontracts?page={{curpage}}&&pagetype=pageup">上一页</a>
-		{% endifnotequal %}
-		第{{curpage}}/{{allpage}}
-		{% ifnotequal curpage allpage %}
-		<a href="/querycontracts?page={{curpage}}&&pagetype=pagedown">下一页</a>
-		{% endifnotequal %}
-		{% ifnotequal allpage 1 %}
-		<p>跳转到第<input id='PageNo' style="width:30px;"> 页 <input type='button' value='GO' onclick="GoTo({{allpage}})"></p>
-		{% endifnotequal %}
-		</div>
     </div>
 
 </body>

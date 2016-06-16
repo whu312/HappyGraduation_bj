@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'HG.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'HG',
+        'NAME': 'HG_bj',
         'USER': 'root',
         'PASSWORD': 'loyoen',
         'HOST': '127.0.0.1',

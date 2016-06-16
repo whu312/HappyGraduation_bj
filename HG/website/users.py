@@ -69,6 +69,7 @@ def login(req):
             a = {}
             if req.user.is_authenticated():
                 a['user'] = req.user
+                a["indexlist"] = getindexlist(req)
             return render_to_response("home.html",a)
         else:
             a = {}
@@ -93,6 +94,7 @@ def userctl(req):
     return render_to_response("userctl.html",a)
     '''
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"账户管理"):
         return render_to_response("jur.html",a)
     
@@ -135,18 +137,28 @@ def userctl(req):
 @checkauth
 def deleteuser(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if req.method == 'POST':
         user_id = req.POST.get("user_id","")
-        thisuser = users.objects.filter(thisuser_id=int(user_id))[0]
-        curuser = thisuser.thisuser
-        thisuser.delete()
-        curuser.delete()
+        try:
+            thisuser = users.objects.filter(id=int(user_id))[0]
+        except:
+            pass
+        try:
+            curuser = thisuser.thisuser
+        except:
+            curuser = None
+        if thisuser:
+            thisuser.delete()
+        if curuser:
+            curuser.delete()
         return render_to_response('home.html', a)
 
 @csrf_exempt
 @checkauth
 def passwd(request):
     a = {'user':request.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(request,"密码修改"):
         return render_to_response("jur.html",a)
     
@@ -157,14 +169,91 @@ def passwd(request):
         form = ChangepwdForm(request.POST)
         if form.is_valid():
             username = request.user.username
-            oldpassword = request.POST.get('oldpsw', '')
+            oldpassword = request.POST.get('oldpassword', '')
+            print username
+            print oldpassword
             user = auth.authenticate(username=username, password=oldpassword)
+            print user
+            print user.is_active
             if user is not None and user.is_active:
-                newpassword = request.POST.get('newpsw1', '')
+                newpassword = request.POST.get('newpassword1', '')
                 user.set_password(newpassword)
                 user.save()
-                return render_to_response('passwd.html', RequestContext(request,{'changepwd_success':True,"user":request.user}))
+                return render_to_response('passwd.html', RequestContext(request,{'form': form,'changepwd_success':True,"user":request.user}))
             else:
                 return render_to_response('passwd.html', RequestContext(request, {'form': form,'oldpassword_is_wrong':True,"user":request.user}))
         else:
             return render_to_response('passwd.html', RequestContext(request, {'form': form,"user":request.user}))
+        
+indexlist = [("合同管理",["新增合同","合同审核","全部合同查询","合同总数审核","合同修改"]),
+             ("还款管理",["还款查询","到期续单","还款确认","全部还款查询"]),
+             ("参数设置",["产品管理","经理管理","团队管理","职场管理","人员结构"]),
+             ("系统设置",["账户管理","密码修改","系统日志"]),
+             ("统计功能",["还款计划","进账统计","年化进账统计","返款统计","待收查询"])]
+
+def getindexlist(req):
+    thisuser = users.objects.filter(thisuser_id=req.user.id)[0]
+    limits = 0
+    anslist = []
+    if thisuser.jurisdiction & int("10111",2):
+        tmplist = []
+        if thisuser.jurisdiction & int("1",2):
+            tmplist.append(("新增合同","/newcontract"))
+        if thisuser.jurisdiction & int("100",2):
+            tmplist.append(("合同审核","/checkcontracts"))
+        if thisuser.jurisdiction & int("10",2):
+            tmplist.append(("全部合同查询","/querycontracts"))
+        if thisuser.jurisdiction & int("10000",2):
+            tmplist.append(("合同总数审核","/lastcheck"))
+        if thisuser.jurisdiction & int("1",2):
+            tmplist.append(("合同修改","/changecon"))
+        anslist.append(("合同管理",tmplist))
+    if thisuser.jurisdiction & int("1111000000",2):
+        tmplist = []
+        if thisuser.jurisdiction & int("1000000",2):
+            tmplist.append(("还款查询","/queryrepayitems/1"))
+        if thisuser.jurisdiction & int("10000000",2):
+            tmplist.append(("到期续单","/queryrepayitems/2"))
+        if thisuser.jurisdiction & int("100000000",2):
+            tmplist.append(("还款确认","/queryrepayitems/3"))
+        if thisuser.jurisdiction & int("1000000000",2):
+            tmplist.append(("全部还款查询","/queryrepayitems/4"))
+        if thisuser.jurisdiction & int("100000000",2):
+            tmplist.append(("还款测试","/repaytest"))
+        anslist.append(("还款管理",tmplist))
+    if thisuser.jurisdiction & int("10000000011110000000000",2):
+        tmplist = []
+        if thisuser.jurisdiction & int("10000000000",2):
+            tmplist.append(("产品管理","/newproduct"))
+        if thisuser.jurisdiction & int("100000000000",2):
+            tmplist.append(("经理管理","/newmanager"))
+        if thisuser.jurisdiction & int("1000000000000",2):
+            tmplist.append(("团队管理","/newbigparty"))
+        if thisuser.jurisdiction & int("10000000000000",2):
+            tmplist.append(("职场管理","/newfield"))
+        if thisuser.jurisdiction & int("10000000000000000000000",2):
+            tmplist.append(("人员结构","/construct"))
+        anslist.append(("参数设置",tmplist))
+    if thisuser.jurisdiction & int("11100000000000000",2):
+        tmplist = []
+        if thisuser.jurisdiction & int("100000000000000",2):
+            tmplist.append(("账号管理","/settings"))
+        if thisuser.jurisdiction & int("1000000000000000",2):
+            tmplist.append(("密码修改","/passwd"))
+        if thisuser.jurisdiction & int("10000000000000000",2):
+            tmplist.append(("系统日志","/log"))
+        anslist.append(("系统设置",tmplist))
+    if thisuser.jurisdiction & int("1111100000000000000000",2):
+        tmplist = []
+        if thisuser.jurisdiction & int("100000000000000000",2):
+            tmplist.append(("还款计划","/repayplan"))
+        if thisuser.jurisdiction & int("1000000000000000",2):
+            tmplist.append(("进账统计","/intocnt"))
+        if thisuser.jurisdiction & int("10000000000000000",2):
+            tmplist.append(("年化进账统计","/yearintocnt"))
+        if thisuser.jurisdiction & int("1000000000000000",2):
+            tmplist.append(("返款统计","/repaycnt"))
+        if thisuser.jurisdiction & int("10000000000000000",2):
+            tmplist.append(("待收查询","/waitrepay"))
+        anslist.append(("统计功能",tmplist))
+    return anslist

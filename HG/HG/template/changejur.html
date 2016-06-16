@@ -4,22 +4,22 @@
 
 {% load bootstrap_toolkit %}
 <div class="right">
-    <h5><a href="/changejur">权限调整</a></h5>
-    {% if exist %}
+    <h5>权限调整</h5>
+    {% if change_succ %}
         <div class="alert alert-error">
             <button type="button" class="close" data-dismiss="alert">×</button>
-            <h4>错误!</h4>用户名已存在
-        </div>
-    {% endif %}
-    {% if add_succ %}
-        <div class="alert alert-error">
-            <button type="button" class="close" data-dismiss="alert">×</button>
-            <h4>成功!</h4>用户添加成功
+            <h4>成功!</h4>权限调整成功
         </div>
     {% endif %}
     <div class="well">
         <form class="form-horizontal" action="" method="post">
             {% csrf_token %}
+            
+            <select name="user_id">
+            {%for item in users%}
+            <option value={{item.id}}>{{item.username}}</option>
+            {%endfor%}
+            </select>
             {{ form|as_bootstrap:"horizontal" }}
             <p class="form-actions">
                 <input type="submit" value="提交" class="btn btn-primary">

@@ -14,7 +14,7 @@
             <li>{{p.0}}
                 <ul>
                 {%for m in p.1%}
-                <li>{{m}}</li>
+                <li><a href="/manager/{{m.id}}/">{{m.name}}</a></li>
                 {%endfor%}
                 </ul>
             </li>

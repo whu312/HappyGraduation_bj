@@ -1,0 +1,39 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+</script>
+{%ifequal type_id "1"%}
+<h2>还款查询</h2>
+{%endifequal%}
+{%ifequal type_id "2"%}
+<h2>到期续单</h2>
+{%endifequal%}
+{%ifequal type_id "3"%}
+<h2>还款确认</h2>
+{%endifequal%}
+{%ifequal type_id "4"%}
+<h2>全部还款查询</h2>
+{%endifequal%}
+<div class="input-append" >
+    <form action="/outhiddenfile" method="get" target="_blank">
+    起始日期
+    <input id="fromdate" name="fromdate" value={{fromdate}} onClick="WdatePicker()">
+    终止日期
+    <input id="todate" name="todate" value={{todate}} onClick="WdatePicker()">
+    <br />
+    <input type="submit" value="导出excel">
+    </form>
+    
+</div>
+        
+{% endblock %}

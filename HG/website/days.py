@@ -24,7 +24,7 @@ def getNextDay(onedate,months,days):
             nowday = thisdate.day
             while True:
                 try:
-                    thisdate = datetime.date(thisdate.year,thisdate.month-months,nowday-1)
+                    thisdate = datetime.date(thisdate.year,thisdate.month+months,nowday-1)
                     break
                 except:
                     nowday -= 1

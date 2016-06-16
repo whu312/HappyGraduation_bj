@@ -14,7 +14,7 @@ from django.template import *
 
 jurlist = ["新增合同","合同查询","合同审核","审核回退","最终审核","合同终止","还款查询","到期续单",
         "还款确认","全部还款查询","产品管理","经理管理","团队管理","职场管理","账户管理",
-        "密码修改","系统日志","还款计划","进账统计","年化进账统计","返款统计","待收查询"]
+        "密码修改","系统日志","还款计划","进账统计","年化进账统计","返款统计","待收查询","人员结构"]
 def getjurtuple(onelist):
     j = 1
     jlist = []
@@ -415,4 +415,19 @@ class NewUserForm(forms.Form):
             raise forms.ValidationError(u"所有项都为必填项")
         else:
             cleaned_data = super(NewUserForm, self).clean()
+        return cleaned_data
+    
+class ChangeJurForm(forms.Form):
+    jur = forms.MultipleChoiceField(
+        required=True,
+        label=u"权限",
+        error_messages={'required': u'请选择权限'},
+        choices=getjurtuple(jurlist), 
+        widget=forms.CheckboxSelectMultiple(),
+    )
+    def clean(self):
+        if not self.is_valid():
+            raise forms.ValidationError(u"所有项都为必填项")
+        else:
+            cleaned_data = super(ChangeJurForm, self).clean()
         return cleaned_data

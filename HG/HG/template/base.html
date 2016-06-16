@@ -24,56 +24,17 @@
                         </li>
                     <li>&nbsp;&nbsp;</li>
                     <li style="padding-top: 30px;"><a href="/">Home</a></li>
+					{%for item in indexlist%}
                     <li class="dropdown" id="accountmenu" style="padding-top: 30px;">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">合同管理<b class="caret"></b></a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{item.0}}<b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li><a href="/newcontract">新增合同</a></li>
-                            <!--<li><a href="/querycontracts">合同查询</a></li>-->
-                            <li><a href="/checkcontracts">合同审核</a></li>
-							<!--
-							<li><a href="/rollbackcontracts">审核回退</a></li>
-							-->
-							<li><a href="/querycontracts">全部合同查询</a></li>
-                            <li><a href="/lastcheck">合同总数审核</a></li>
+							{%for elem in item.1%}
+                            <li><a href="{{elem.1}}">{{elem.0}}</a></li>
+							{%endfor%}
                         </ul>
                     </li>
-                    <li class="dropdown" id="accountmenu" style="padding-top: 30px;">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">还款管理<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/queryrepayitems/1">还款查询</a></li>
-                            <li><a href="/queryrepayitems/2">到期续单</a></li>
-                            <li><a href="/queryrepayitems/3">还款确认</a></li>
-							<li><a href="/queryrepayitems/4">全部还款查询</a></li>
-                        </ul>
-                    </li>
-					<li class="dropdown" id="accountmenu" style="padding-top: 30px;">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">参数设置<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/newproduct">产品管理</a></li>
-                            <li><a href="/newmanager">经理管理</a></li>
-                            <li><a href="/newbigparty">团队管理</a></li>
-							<li><a href="/newfield">职场管理</a></li>
-							<li><a href="/construct">人员结构</a></li>
-                        </ul>
-                    </li>
-					<li class="dropdown" id="accountmenu" style="padding-top: 30px;">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">系统设置<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/settings">账户管理</a></li>
-                            <li><a href="/passwd">密码修改</a></li>
-                            <li><a href="/log">系统日志</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown" id="accountmenu" style="padding-top: 30px;">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">统计功能<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/repayplan">还款计划</a></li>
-                            <li><a href="/intocnt">进账统计</a></li>
-                            <li><a href="/yearintocnt">年化进账统计</a></li>
-							<li><a href="/repaycnt">返款统计</a></li>
-							<li><a href="/waitrepay">待收查询</a></li>
-                        </ul>
-                    </li>
+					{%endfor%}
+                    
                     <li class="dropdown" style="padding-top: 30px;">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{user.username}}</b></a>
                     <ul class="dropdown-menu">

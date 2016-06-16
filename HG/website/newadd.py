@@ -31,11 +31,11 @@ def filterRepayItems(fromdate,todate,contract_number,type_id):
         if contract_id != -1:
             try:
                 items = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,
-                        thiscontract_id__exact=contract_id,status__gt=-1)
+                        thiscontract_id__exact=contract_id,status__gt=-1,status__lt=10)
             except:
                 items = []
         elif contract_number=="":
-            items = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,status__gt=-1)
+            items = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,status__gt=-1,status__lt=10)
     elif type_id=="2":
         if contract_id != -1:
             items = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,
@@ -60,6 +60,7 @@ def filterRepayItems(fromdate,todate,contract_number,type_id):
 @checkauth
 def outputfile(req,type_id):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"还款查询"):
         return render_to_response("jur.html",a)
     
@@ -108,3 +109,111 @@ def outputfile(req,type_id):
         response['Content-Type'] = 'application/octet-stream'
         response['Content-Disposition'] = 'attachment;filename="{0}"'.format("转账数据.xls")
         return response
+    
+@checkauth
+def outhiddenfile(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    if not checkjurisdiction(req,"还款查询"):
+        return render_to_response("jur.html",a)
+    
+    def item_compare(x,y):
+        if y.repaydate>x.repaydate:
+            return 1
+        elif y.repaydate<x.repaydate:
+            return -1
+        return 0
+    def file_iterator(file_name, chunk_size=512):
+        with open(file_name,"rb") as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
+    def writefile(items):
+        w = Workbook()
+        ws = w.add_sheet('sheet1')
+        titles = [u"收款账户列",u"收款账户名列",u"转账金额列",u"备注列",u"收款银行列",u"收款银行支行列",u"收款省/直辖市列",u"收款市县列"]
+        for i in range(0,len(titles)):
+            ws.write(0,i,titles[i])
+        for i in range(0,len(items)):
+            ws.write(i+1,0,items[i].thiscontract.bank_card)
+            ws.write(i+1,1,items[i].thiscontract.client_name)
+            ws.write(i+1,2,"%0.2f" % float(items[i].repaymoney))
+            ws.write(i+1,3,items[i].thiscontract.comment)
+            ws.write(i+1,4,items[i].thiscontract.bank)
+            ws.write(i+1,5,items[i].thiscontract.subbranch)
+            ws.write(i+1,6,items[i].thiscontract.province)
+            ws.write(i+1,7,items[i].thiscontract.city)
+        filename = ".//tmpfolder//" + str(datetime.datetime.now()).split(" ")[1].replace(":","").replace(".","") + ".xls"
+        print filename
+        w.save(filename)
+        return filename
+        
+    if req.method == "GET":
+        fromdate = req.GET.get("fromdate",str(datetime.date.today()))
+        todate = req.GET.get("todate",str(datetime.date.today()+datetime.timedelta(7))) #下一周
+        contract_number = req.GET.get("contract_id","")
+        items = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,status__gte=10)
+        sorteditems = sorted(items,cmp=item_compare)
+        the_file_name = writefile(sorteditems)
+        response = StreamingHttpResponse(file_iterator(the_file_name))
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="{0}"'.format("测试转账数据.xls")
+        return response    
+    
+    
+@csrf_exempt
+@checkauth
+def changejur(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    if not checkjurisdiction(req,"账户管理"):
+        return render_to_response("jur.html",a)
+    
+    a['users'] = users.objects.all()
+    if req.method == 'GET':
+        form = ChangeJurForm()
+        a["form"] = form
+        return render_to_response('changejur.html', a)
+    else:
+        form = ChangeJurForm(req.POST)
+        if form.is_valid():
+            user_id = req.POST.get("user_id","")
+            thisuser = users.objects.filter(id=int(user_id))
+            if not thisuser:
+                return render_to_response("home.html",a)
+            check_list = req.POST.getlist("jur")
+            jur = 0
+            for item in check_list:
+                jur += int(item)
+            thisuser = thisuser[0]
+            thisuser.jurisdiction = jur
+            thisuser.save()
+            a["change_succ"] = "true"
+            a["form"] = form
+            return render_to_response('changejur.html', a)
+        else:
+            a["form"] = form
+            return render_to_response('changejur.html', a)
+        
+@checkauth
+def changecon(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    if not checkjurisdiction(req,"新增合同"):
+        return render_to_response("jur.html",a)
+    if req.method == "GET":
+        allc = contract.objects.filter(operator_id=req.user.id,status__lte=2,status__gte=1)
+        a["contracts"] = allc
+        return render_to_response("changecon.html",a)
+    
+@checkauth
+def showmanager(req,mid):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    if req.method == "GET":
+        allc = contract.objects.filter(thismanager_id=int(mid))
+        a["contracts"] = allc
+        return render_to_response("manager_contract.html",a)

@@ -18,7 +18,40 @@ ONE_PAGE_NUM = 10
 # Create your views here.
 
 def testhtml(req):
-    return render_to_response("searchcontract.html")
+    alllogs = loginfo.objects.all()
+    for item in alllogs:
+        pos = item.info.find("=")
+        if pos==-1:
+            continue
+        cid = int(item.info[pos+1:])
+        if item.info.find("repay")!=-1:
+            try:
+                item.info = "repay with %d of contract number=%s" % (cid,repayitem.objects.filter(id=cid)[0].thiscontract.number)
+                item.save()
+            except:
+                print "repay log err"
+            continue
+        if item.info.find("renewal")!=-1:
+            try:
+                pos1 = item.info.find("contract ")+len("contract ")
+                pos2 = item.info.find(" with")
+                id1 = int(item.info[pos1:pos2])
+                number1 = contract.objects.filter(id=id1)[0].number
+                number2 = contract.objects.filter(id=cid)[0].number
+                strline = "renewal contract %s with id=%s" % (number1,number2)
+                item.info = strline
+                item.save()
+            except:
+                print "renewal log err"
+            continue
+        try:
+            number = contract.objects.filter(id=cid)[0].number
+        except:
+            print "contract not exist"
+            continue
+        item.info = item.info.replace("="+str(cid),"="+number)
+        item.save()
+    return render_to_response("home.html")
     
 def cleanall(req):
     repayitem.objects.all().delete()
@@ -43,6 +76,7 @@ def addcycle(req):
 @checkauth
 def index(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     return render_to_response("home.html",a)
       
 def checkinput(number):
@@ -55,11 +89,12 @@ def checkinput(number):
 @checkauth
 def newcontract(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"新增合同"):
         return render_to_response("jur.html",a)
 
     a['products'] = product.objects.all()
-    a['managers'] = manager.objects.all()
+    a['managers'] = manager.objects.raw("select * from website_manager order by convert(name USING gbk)")#order_by("name")
     form = NewContractForm()
     a["form"] = form
     if req.method == 'GET':
@@ -93,7 +128,7 @@ def newcontract(req):
                     comment=comment,money=money,thisproduct_id=int(product_id),startdate=startdate,enddate=enddate,status=1,
                     thismanager_id=int(manager_id),renewal_father_id=-1,renewal_son_id=-1,operator_id=req.user.id)
             thiscontract.save()
-            thislog = loginfo(info="new contract with id=%d" % (thiscontract.id),time=str(datetime.datetime.now()),thisuser=req.user)
+            thislog = loginfo(info="new contract with id=%s" % (thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
             thislog.save()
         
             #CreateRepayItem(thiscontract)
@@ -113,7 +148,7 @@ def statuscontract(req):
         initstatus = thiscontract.status
         thiscontract.status = int(status)
         thiscontract.save()
-        thislog = loginfo(info="change contract with id=%d from status=%s to %d" % (thiscontract.id,status,initstatus),
+        thislog = loginfo(info="change contract with id=%s from status=%s to %d" % (thiscontract.number,status,initstatus),
                 time=str(datetime.datetime.now()),thisuser=req.user)
         thislog.save()
         a = {'user':req.user}
@@ -127,6 +162,7 @@ def statuscontract(req):
 @checkauth
 def newfield(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"职场管理"):
         return render_to_response("jur.html",a)
     
@@ -155,6 +191,7 @@ def newfield(req):
 @checkauth
 def newbigparty(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"团队管理"):
         return render_to_response("jur.html",a)
     
@@ -183,6 +220,7 @@ def newbigparty(req):
 @checkauth
 def newparty(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"团队管理"):
         return render_to_response("jur.html",a)
     
@@ -210,6 +248,7 @@ def newparty(req):
 @checkauth
 def newmanager(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"经理管理"):
         return render_to_response("jur.html",a)
     
@@ -240,6 +279,7 @@ def newmanager(req):
 @checkauth
 def newproduct(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"产品管理"):
         return render_to_response("jur.html",a)
     
@@ -268,15 +308,17 @@ def newproduct(req):
 @checkauth
 def getproduct(req,product_id):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     thisproduct = product.objects.filter(id=int(product_id))
     if thisproduct:
         thisproduct = thisproduct[0]
     a["product"] = thisproduct
     return render_to_response("product.html",a)
-
+@csrf_exempt
 @checkauth
 def getlog(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"系统日志"):
         return render_to_response("jur.html",a)
     if req.method == "GET":
@@ -295,28 +337,40 @@ def getlog(req):
         allcount = 0
         for log in loginfo.objects.all():
             allcount += 1
-        print allcount
         startpos = ((thispage-1)*ONE_PAGE_NUM if (thispage-1)*ONE_PAGE_NUM<allcount else allcount)
         endpos = (thispage*ONE_PAGE_NUM if thispage*ONE_PAGE_NUM<allcount else allcount)
-        logs = loginfo.objects.all()[startpos:endpos]
-        print logs.count()
+        alllog = loginfo.objects.order_by("-time")
+        logs = alllog[startpos:endpos]
+
         a['curpage'] = thispage
         a['allpage'] = (allcount-1)/ONE_PAGE_NUM + 1
         a['logs'] = logs
         return render_to_response("log.html",a)
-
+    if req.method == 'POST':
+        logs = []
+        number = req.POST.get("number",'')
+        alllogs = loginfo.objects.filter(info__contains=number).order_by("-time")
+        a['logs'] = alllogs
+        a['curpage'] = 1
+        a['allpage'] = 1
+        return render_to_response("log.html",a)
+    
 @csrf_exempt
 @checkauth
 def altercontract(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     a['products'] = product.objects.all()
-    a['managers'] = manager.objects.all()
+    a['managers'] = manager.objects.raw("select * from website_manager order by convert(name USING gbk)")#order_by("name")
     if req.method == "GET":
         contractid = req.GET.get("contractid",'')
         try:
             thiscontract = contract.objects.get(id = int(contractid))
-            a["contract"] = thiscontract
-            return render_to_response("altercontract.html",a)
+            if thiscontract.status == 1:
+                a["contract"] = thiscontract
+                return render_to_response("altercontract.html",a)
+            else:
+                return render_to_response("home.html",a)
         except:
             return render_to_response("home.html",a)
     if req.method == "POST":
@@ -351,15 +405,15 @@ def altercontract(req):
             thiscontract.client_name = req.POST.get("client_name",'')
             thiscontract.client_idcard = req.POST.get("client_idcard",'')
             thiscontract.address = req.POST.get("address",'')
-            thiscontract.product_id = req.POST.get("product_id",'')
+            thiscontract.thisproduct_id = int(req.POST.get("product_id",''))
             thiscontract.startdate = req.POST.get('startdate','')
             thiscontract.enddate = req.POST.get("enddate",'')
-            thiscontract.manager_id = req.POST.get('manager_id','')
+            thiscontract.thismanager_id = int(req.POST.get('manager_id',''))
             thiscontract.status = 1
             thiscontract.save()
-            thislog = loginfo(info="alter contract with id=%d" % (thiscontract.id),time=str(datetime.datetime.now()),thisuser=req.user)
+            thislog = loginfo(info="alter contract with id=%s" % (thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
             thislog.save()
-            a = {'user':req.user}
+            #a = {'user':req.user}
             a["create_succ"] = True
             a["contract"] = thiscontract
             return render_to_response("altercontract.html",a)
@@ -374,6 +428,7 @@ def altercontract(req):
 @checkauth
 def showcontract(req,contract_id):
 	a = {'user':req.user}
+	a["indexlist"] = getindexlist(req)
 	if req.method == 'GET':
 		contractid = contract_id
 		thiscontract = contract.objects.get(id = int(contractid))
@@ -391,7 +446,6 @@ def checknumber(req):
         number = req.POST['number']
         thiscontract = contract.objects.filter(number = number)
     if thiscontract:
-        print "yeah"
         result = 1 
         result = json.dumps(result)
     else:
@@ -405,6 +459,7 @@ def checknumber(req):
 @checkauth
 def showproduct(req,product_id):
 	a = {'user':req.user}
+	a["indexlist"] = getindexlist(req)
 	if req.method == 'GET':
 		productid = product_id
 		thisproduct = product.objects.get(id = int(productid))
@@ -416,6 +471,7 @@ def showproduct(req,product_id):
 @checkauth
 def terminatecon(req):
 	a = {'user':req.user}
+	a["indexlist"] = getindexlist(req)
 	if not checkjurisdiction(req,"合同终止"):
 		return render_to_response("jur.html",a)
 	if req.method =='GET':
@@ -430,7 +486,7 @@ def terminatecon(req):
 		thiscontract.status = -1
 		thiscontract.comment += "    "+thiscomment
 		thiscontract.save()
-		thislog = loginfo(info="terminate contract with id=%d" % (thiscontract.id),time=str(datetime.datetime.now()),thisuser=req.user)
+		thislog = loginfo(info="terminate contract with id=%s" % (thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
 		thislog.save()
         
 		items = repayitem.objects.filter(thiscontract_id=thiscontract.id)
@@ -453,6 +509,7 @@ def terminatecon(req):
 @checkauth
 def checkcontract(req):
 	a = {'user':req.user}
+	a["indexlist"] = getindexlist(req)
 	if not checkjurisdiction(req,"合同审核"):
 		return render_to_response("jur.html",a)
 	if req.method == 'GET':
@@ -468,19 +525,33 @@ def checkcontract(req):
 		if newstatus == 2:
 			thiscontract.status = newstatus
 		thiscontract.save()
-		thislog = loginfo(info="check contract with id=%d" % (thiscontract.id),time=str(datetime.datetime.now()),thisuser=req.user)
+		thislog = loginfo(info="check contract with id=%s" % (thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
 		thislog.save()
 		contracts = contract.objects.filter(status = 1)
 		allcount = contracts.count()
-		a = {'user':req.user}
 		a['curpage'] = 1
 		a['allpage'] = (allcount-1)/ONE_PAGE_NUM + 1
 		a["contracts"] = contracts[0:ONE_PAGE_NUM]
 		return render_to_response("checkcontracts.html",a)
 
 @checkauth
+def repaytest(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    if not checkjurisdiction(req,"还款查询"):
+        return render_to_response("jur.html",a)
+    
+    if req.method == "GET":
+        fromdate = req.GET.get("fromdate",str(datetime.date.today()))
+        todate = req.GET.get("todate",str(datetime.date.today()+datetime.timedelta(7))) #下一周
+        a["fromdate"] = fromdate
+        a["todate"] = todate
+        return render_to_response("repaytest.html",a)
+
+@checkauth
 def queryrepayitems(req,type_id):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"还款查询"):
         return render_to_response("jur.html",a)
     
@@ -501,6 +572,7 @@ def queryrepayitems(req,type_id):
 @checkauth
 def getrepayitem(req,item_id):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"还款查询"):
         return render_to_response("jur.html",a)
     if req.method == "GET":
@@ -535,7 +607,7 @@ def statusrepayitem(req,type_id):
                     if a["message"]=="true":
                         thisitem.status += 1
                         thisitem.save()
-                        thislog = loginfo(info="repay with id=%d" % (thisitem.id),time=str(datetime.datetime.now()),thisuser=req.user)
+                        thislog = loginfo(info="repay with %d of contract number=%s" % (thisitem.id,thisitem.thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
                         thislog.save()
             elif type_id == '2':
                 if not checkjurisdiction(req,"到期续单"):
@@ -560,7 +632,7 @@ def statusrepayitem(req,type_id):
                             thisitem.save()
                             thisitem.thiscontract.renewal_id = renewal_con[0].id
                             thisitem.thiscontract.save()
-                            thislog = loginfo(info="renew contract %d with id=%d" % (thisitem.thiscontract.id,thisitem.thiscontract.renewal_id),time=str(datetime.datetime.now()),thisuser=req.user)
+                            thislog = loginfo(info="renew contract %s with id=%s" % (thisitem.thiscontract.number,renewal_con[0].number),time=str(datetime.datetime.now()),thisuser=req.user)
                             thislog.save()
         else:
             a["info"] = "没有该还款项"
@@ -571,6 +643,7 @@ def statusrepayitem(req,type_id):
 @checkauth
 def checkcontracts(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"合同审核"):
         return render_to_response("jur.html",a)
     
@@ -596,11 +669,9 @@ def checkcontracts(req):
             for con in contract.objects.all():
                 if con.status == 1:
                     allcount += 1
-            print allcount
             startpos = ((thispage-1)*ONE_PAGE_NUM if (thispage-1)*ONE_PAGE_NUM<allcount else allcount)
             endpos = (thispage*ONE_PAGE_NUM if thispage*ONE_PAGE_NUM<allcount else allcount)
             contracts = contract.objects.filter(status = 1)[startpos:endpos]
-            print contracts.count()
         else:
             contracts = contract.objects.filter(number=number)
         a['curpage'] = thispage
@@ -612,6 +683,7 @@ def checkcontracts(req):
 @checkauth
 def rollbackcontracts(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"审核回退"):
         return render_to_response("jur.html",a)
     
@@ -637,7 +709,6 @@ def rollbackcontracts(req):
             for con in contract.objects.all():
                 if con.status == 2 :
                     allcount += 1
-            print allcount
             startpos = ((thispage-1)*ONE_PAGE_NUM if (thispage-1)*ONE_PAGE_NUM<allcount else allcount)
             endpos = (thispage*ONE_PAGE_NUM if thispage*ONE_PAGE_NUM<allcount else allcount)
             contracts = contract.objects.filter(status = 2)[startpos:endpos]
@@ -651,9 +722,9 @@ def rollbackcontracts(req):
 @checkauth
 def rollbackcontract(req):
 	a = {'user':req.user}
+	a["indexlist"] = getindexlist(req)
 	if req.method == 'GET':
 		contractid = req.GET.get("contractid",'')
-		print "he",contractid
 		thiscontract = contract.objects.get(id = int(contractid))
 		a["contract"] = thiscontract
 		return render_to_response("rollbackcontract.html",a)
@@ -662,7 +733,7 @@ def rollbackcontract(req):
 		thiscontract = contract.objects.get(id = int(id))
 		thiscontract.status = 3
 		thiscontract.save()
-		thislog = loginfo(info="rollbackcontract with id=%d" % (thiscontract.id),time=str(datetime.datetime.now()),thisuser=req.user)
+		thislog = loginfo(info="rollbackcontract with id=%s" % (thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
 		thislog.save()
 		a = {'user':req.user}
 		return render_to_response("home.html",a)
@@ -671,6 +742,7 @@ def rollbackcontract(req):
 @checkauth
 def querycontracts(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"合同查询"):
         return render_to_response("jur.html",a)
     
@@ -687,7 +759,6 @@ def querycontracts(req):
         except ValueError:
             number = ""
         contracts = []
-        a = {'user':req.user}
         if pagetype == 'pagedown':
             thispage += 1
         elif pagetype == 'pageup':
@@ -704,7 +775,6 @@ def querycontracts(req):
         a['contracts'] = contracts
         return render_to_response("querycontracts.html",a)
     if req.method == 'POST':
-        a = {'user':req.user}
         contracts = []
         number = req.POST.get("number",'')
         contractbynum = contract.objects.filter(number=number)
@@ -723,13 +793,13 @@ def querycontracts(req):
 @checkauth
 def lastcheck(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"最终审核"):
         return render_to_response("jur.html",a)
     if req.method == "GET":
         fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
         todate = req.GET.get("todate",str(datetime.date.today())) #前一周
         cons = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,status=2)
-        a = {'user':req.user}
         totalmoney = 0.0
         for con in cons:
             addmoney = 0.0
@@ -751,7 +821,6 @@ def lastcheck(req):
         
         cons = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,status=2)
         #print fromdate,todate
-        print status,':',fromdate,todate
         if status=='2':
             for con in cons:
                 con.status = 4
@@ -759,12 +828,12 @@ def lastcheck(req):
                 CreateRepayItem(con) 
         thislog = loginfo(info="lastcheck contracts from %s to %s" % (fromdate,todate),time=str(datetime.datetime.now()),thisuser=req.user)
         thislog.save()
-        a = {'user':req.user}
         return render_to_response("home.html",a)
     
 @checkauth
 def queryproducts(req):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"产品管理"):
         return render_to_response("jur.html",a)
     products = product.objects.all()
@@ -775,6 +844,7 @@ def queryproducts(req):
 @checkauth
 def renewalcontract(req,repayitem_id):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     a["repayitem_id"] = repayitem_id
     a["onecontract"] = repayitem.objects.filter(id=int(repayitem_id))[0].thiscontract
     if not checkjurisdiction(req,"到期续单"):
@@ -818,7 +888,7 @@ def renewalcontract(req,repayitem_id):
                     comment=comment,money=money,thisproduct_id=int(product_id),startdate=startdate,enddate=enddate,status=1,
                     thismanager_id=int(manager_id),renewal_father_id=-1,renewal_son_id=-1,operator_id=req.user.id)
                 thiscontract.save()
-                thislog = loginfo(info="new contract with id=%d" % (thiscontract.id),time=str(datetime.datetime.now()),thisuser=req.user)
+                thislog = loginfo(info="new contract with id=%s" % (thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
                 thislog.save()
             else:
                 thisrepayitem = repayitem.objects.filter(id=int(thisrepayitem_id))[0]
@@ -842,7 +912,7 @@ def renewalcontract(req,repayitem_id):
                     thisrepayitem.repaymoney = str(float(thisrepayitem.repaymoney) - float(thiscontract.money))
     
                 thisrepayitem.save()
-                thislog = loginfo(info="renewal contract %d with id=%d" % (father_contract.id,thiscontract.id),time=str(datetime.datetime.now()),thisuser=req.user)
+                thislog = loginfo(info="renewal contract %s with id=%s" % (father_contract.number,thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
                 thislog.save()
                 
                 a["repayitem"] = thisrepayitem
@@ -856,6 +926,10 @@ def renewalcontract(req,repayitem_id):
 
 @checkauth
 def getconstruct(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    if not checkjurisdiction(req,"人员结构"):
+        return render_to_response("jur.html",a)
     if req.method == "GET":
         fields = field.objects.all()
         anslist = []
@@ -869,11 +943,10 @@ def getconstruct(req):
                     mlist = []
                     managers = manager.objects.filter(thisparty_id=p.id)
                     for m in managers:
-                        mlist.append(m.name)
+                        mlist.append(m)
                     plist.append((p.name,mlist))
                 bplist.append((bp.name,plist))
             anslist.append((onefield.name,bplist))
-        a = {'user':req.user}
         a["res"] = anslist
         return render_to_response('construct.html', a)
 
@@ -882,6 +955,7 @@ def getconstruct(req):
 def ajust(req,type_id):
     if req.method == "GET":
         a = {'user':req.user}
+        a["indexlist"] = getindexlist(req)
         if type_id=="1":
             a["bps"] = bigparty.objects.all()
             a["fields"] = field.objects.all()

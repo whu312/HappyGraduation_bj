@@ -13,6 +13,15 @@ else{
  window.alert('请输入正确页码');
 }
 }
+function checknull()
+{
+    var a = document.getElementById("number").value;
+    if(a==""){
+        alert("请输入合同号");
+        return false;
+    }
+    return true;
+}
 </script>
 <style>
 .input-append{
@@ -26,7 +35,13 @@ text-align:center;
 </style>
 <div class="right">
     <div class="container">
-      <h2>日志</h2>      
+      <h2>日志</h2>
+<div class="input-append" >
+ <form class="form-horizontal" action="/log" method="post" onsubmit="return checknull()">
+    <input type="text" class="span2 search-query" id="number" name="number" placeholder="按合同编号查询" style="width:218px">
+        <input type="submit" class="btn" value = "Search">
+</form>
+</div>      
       <table class="table">
         <thead>
           <tr>

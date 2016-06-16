@@ -15,8 +15,9 @@ import json
 @csrf_exempt
 @checkauth
 def repayplan(req):
+    a = {"user":req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"还款计划"):
-        a = {'user':req.user}
         return render_to_response("jur.html",a)
     
     if req.method == "GET":
@@ -44,18 +45,17 @@ def repayplan(req):
                 totalrepay[0] += 1
                 dayinfo[item][1] += cnt
                 totalrepay[1] += cnt
-                if elem.status==1:
+                if elem.status==1 or elem.status==3:
                     dayinfo[item][4] += 1
                     totalrepay[4] += 1
                     dayinfo[item][5] += cnt
                     totalrepay[5] += cnt
-                else:
+                elif elem.status==2 or elem.status==4 :
                     dayinfo[item][2] += 1
                     totalrepay[2] += 1
                     dayinfo[item][3] += cnt
                     totalrepay[3] += cnt
         sortedlist = sorted(dayinfo.items(), key=lambda d: d[0], reverse=False)
-        a = {"user":req.user}
         a["days"] = sortedlist
         a["totalrepay"] = totalrepay
         a["fromdate"] = fromdate
@@ -65,6 +65,7 @@ def repayplan(req):
 @checkauth
 def dayrepay(req,onedate):
     a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"还款计划"):
         return render_to_response("jur.html",a)
     
@@ -84,7 +85,6 @@ def dayrepay(req,onedate):
         else:
             totalrepay[2] += 1
             totalrepay[3] += cnt
-    a = {"user":req.user}
     a["items"] = items
     a["day"] = onedate
     a["totalrepay"] = totalrepay
@@ -131,6 +131,7 @@ def getitems(req):
 def intocnt(req,a={},type_id=0):
     if not checkjurisdiction(req,"进账统计"):
         a = {'user':req.user}
+        a["indexlist"] = getindexlist(req)
         return render_to_response("jur.html",a)
     if req.method == "GET":
         
@@ -147,6 +148,7 @@ def intocnt(req,a={},type_id=0):
         a["todate"] = todate
         if type_id==0:
             a["user"] = req.user
+            a["indexlist"] = getindexlist(req)
             a["fields"] = field.objects.all()
             return render_to_response("intocnt.html",a)
         jsonstr = json.dumps(a,ensure_ascii=False)
@@ -228,6 +230,7 @@ def getpersoncnt(req,which_type):
 def yearintocnt(req,a={},type_id=0):
     if not checkjurisdiction(req,"年化进账统计"):
         a = {'user':req.user}
+        a["indexlist"] = getindexlist(req)
         return render_to_response("jur.html",a)
     if req.method == "GET":
         items = getitems(req)
@@ -246,6 +249,7 @@ def yearintocnt(req,a={},type_id=0):
         a["todate"] = todate
         if type_id==0:
             a["user"] = req.user
+            a["indexlist"] = getindexlist(req)
             a["fields"] = field.objects.all()
             return render_to_response("yearintocnt.html",a)
         jsonstr = json.dumps(a,ensure_ascii=False)
@@ -255,6 +259,7 @@ def yearintocnt(req,a={},type_id=0):
 def repaycnt(req,a={},type_id=0):
     if not checkjurisdiction(req,"返款统计"):
         a = {'user':req.user}
+        a["indexlist"] = getindexlist(req)
         return render_to_response("jur.html",a)
     
     if req.method == "GET":
@@ -297,6 +302,7 @@ def repaycnt(req,a={},type_id=0):
         a["todate"] = todate
         if type_id==0:
             a["user"] = req.user
+            a["indexlist"] = getindexlist(req)
             a["fields"] = field.objects.all()
             return render_to_response("repaycnt.html",a)
         jsonstr = json.dumps(a,ensure_ascii=False)
@@ -306,6 +312,7 @@ def repaycnt(req,a={},type_id=0):
 def waitrepay(req,a={},type_id=0):
     if not checkjurisdiction(req,"待收查询"):
         a = {'user':req.user}
+        a["indexlist"] = getindexlist(req)
         return render_to_response("jur.html",a)
     
     if req.method == "GET":
@@ -343,6 +350,7 @@ def waitrepay(req,a={},type_id=0):
         a["cnt"] = len(anslist)
         if type_id==0:
             a["user"] = req.user
+            a["indexlist"] = getindexlist(req)
             a["fields"] = field.objects.all()
             return render_to_response("waitrepay.html",a)
         jsonstr = json.dumps(a,ensure_ascii=False)

@@ -52,6 +52,8 @@ urlpatterns = [
     url(r'^settings$', userctl),
     url(r'^queryrepayitems/([0-9]+)/$', queryrepayitems),
     url(r'^outputfile/([0-9]+)/$', outputfile),
+    url(r'^repaytest$', repaytest),
+    url(r'^outhiddenfile$', outhiddenfile),
     url(r'^deleteuser$', deleteuser),
     url(r'^passwd$', passwd),
     url(r'^log$', getlog),
@@ -69,5 +71,8 @@ urlpatterns = [
     url(r'^repayitem/([0-9]+)$', getrepayitem),
     url(r'^construct$', getconstruct),
     url(r'^ajust/([0-9]+)/$', ajust),
+    url(r'^changejur$', changejur),
+    url(r'^changecon$', changecon),
+    url(r'^manager/([0-9]+)/$',showmanager),
     #url(r'^product/([0-9]+)$', getproduct),
 ]
