@@ -158,32 +158,34 @@ def deleteuser(req):
 @checkauth
 def passwd(request):
     a = {'user':request.user}
-    a["indexlist"] = getindexlist(req)
+    a["indexlist"] = getindexlist(request)
     if not checkjurisdiction(request,"密码修改"):
         return render_to_response("jur.html",a)
     
     if request.method == 'GET':
         form = ChangepwdForm()
-        return render_to_response('passwd.html', RequestContext(request, {'form': form,'user':request.user}))
+        a["form"] = form
+        return render_to_response('passwd.html', a)
     else:
         form = ChangepwdForm(request.POST)
+        a["form"] = form
         if form.is_valid():
             username = request.user.username
             oldpassword = request.POST.get('oldpassword', '')
-            print username
-            print oldpassword
+            
             user = auth.authenticate(username=username, password=oldpassword)
-            print user
-            print user.is_active
+            
             if user is not None and user.is_active:
                 newpassword = request.POST.get('newpassword1', '')
                 user.set_password(newpassword)
                 user.save()
-                return render_to_response('passwd.html', RequestContext(request,{'form': form,'changepwd_success':True,"user":request.user}))
+                a["changepwd_success"] = True
+                return render_to_response('passwd.html', a)
             else:
-                return render_to_response('passwd.html', RequestContext(request, {'form': form,'oldpassword_is_wrong':True,"user":request.user}))
+                a["oldpassword_is_wrong"] = True
+                return render_to_response('passwd.html', a)
         else:
-            return render_to_response('passwd.html', RequestContext(request, {'form': form,"user":request.user}))
+            return render_to_response('passwd.html', a)
         
 indexlist = [("合同管理",["新增合同","合同审核","全部合同查询","合同总数审核","合同修改"]),
              ("还款管理",["还款查询","到期续单","还款确认","全部还款查询"]),
@@ -217,9 +219,7 @@ def getindexlist(req):
         if thisuser.jurisdiction & int("100000000",2):
             tmplist.append(("还款确认","/queryrepayitems/3"))
         if thisuser.jurisdiction & int("1000000000",2):
-            tmplist.append(("全部还款查询","/queryrepayitems/4"))
-        if thisuser.jurisdiction & int("100000000",2):
-            tmplist.append(("还款测试","/repaytest"))
+            tmplist.append(("全部还款查询","/queryrepayitems/4"))     
         anslist.append(("还款管理",tmplist))
     if thisuser.jurisdiction & int("10000000011110000000000",2):
         tmplist = []
