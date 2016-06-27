@@ -378,7 +378,7 @@ def altercontract(req):
         thiscontract = contract.objects.get(id = int(id))
         thisnumber = req.POST.get("number",'')
         isexit = contract.objects.filter(number = thisnumber)
-        if thiscontract.number == thisnumber or len(isexit)==0:
+        if thiscontract.number[:10] == thisnumber[:10] or len(isexit)==0:
             thiscontract.number = req.POST.get("number",'')
             thiscontract.bank = req.POST.get("bank",'')
             thiscontract.bank_card = req.POST.get("bank_card",'')
@@ -387,7 +387,6 @@ def altercontract(req):
             thiscontract.city = req.POST.get("city",'')
             thiscontract.factorage = req.POST.get("factorage",'')  
             thiscontract.comment = req.POST.get("comment",'')  
-			
             tmpmoney = req.POST.get("money",'')
             if thiscontract.money != tmpmoney and thiscontract.renewal_father_id!=-1:
                 father_contract = contract.objects.get(id=int(thiscontract.renewal_father_id))
