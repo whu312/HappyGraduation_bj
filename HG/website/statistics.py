@@ -138,7 +138,11 @@ def intocnt(req,a={},type_id=0):
         items = getitems(req)
         totalmoney = 0.0
         for item in items:
-            totalmoney += float(item.money)
+            try:
+                totalmoney += float(item.money)
+            except:
+                #print item.money
+                print item.number
         #a = {"user":req.user}
         a["totalmoney"] = "%.02f" % totalmoney
         a["cnt"] = len(items)

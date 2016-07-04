@@ -219,7 +219,9 @@ def getindexlist(req):
         if thisuser.jurisdiction & int("100000000",2):
             tmplist.append(("还款确认","/queryrepayitems/3"))
         if thisuser.jurisdiction & int("1000000000",2):
-            tmplist.append(("全部还款查询","/queryrepayitems/4"))     
+            tmplist.append(("全部还款查询","/queryrepayitems/4")) 
+        if thisuser.jurisdiction & int("100000000",2):
+            tmplist.append(("还款测试","/repaytest"))
         anslist.append(("还款管理",tmplist))
     if thisuser.jurisdiction & int("10000000011110000000000",2):
         tmplist = []
