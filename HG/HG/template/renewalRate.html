@@ -1,0 +1,223 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+<script>
+String.prototype.Trim = function() 
+{ 
+    return this.replace(/(^\s*)|(\s*$)/g, ""); 
+}
+function getbigpartylist(field_id){
+    if(field_id=="-1"){
+        document.getElementById("bigparty").innerHTML = "";
+        document.getElementById("party").innerHTML = "";
+        document.getElementById("manager").innerHTML = "";
+    }    
+    var fromdate = document.getElementById("fromdate").value;
+    var todate = document.getElementById("todate").value;
+    $.ajax({
+        type: "GET",
+        data: "field_id="+field_id+"&fromdate="+fromdate+"&todate="+todate,
+        url: "/getbigparties/0",
+        dataType: "json",
+        cache: false,
+        success: function(data){ 
+            with (data.message)
+            {
+                if(Trim()=='true'){
+                    if(field_id!="-1"){
+                        var partystr = "大团<select id='bigparty_select' name='bigparty_id' onchange='getpartylist(this.options[this.options.selectedIndex].value)'><option value='-1' selected>--</option>";
+                        for(var i=0;i<data.bigparties.length;i++){
+                            partystr += "<option value='"+data.bigparties[i][0]+"'>"+data.bigparties[i][1]+"</option>";
+                        }
+                        partystr += "</selected>";
+                        document.getElementById("bigparty").innerHTML = partystr;
+                    }
+                }
+            }
+         }
+    }); 
+}
+function getpartylist(bigparty_id){
+    if(bigparty_id=="-1"){
+        document.getElementById("party").innerHTML = "";
+        document.getElementById("manager").innerHTML = "";
+    }    
+    var fromdate = document.getElementById("fromdate").value;
+    var todate = document.getElementById("todate").value;
+    $.ajax({
+        type: "GET",
+        data: "bigparty_id="+bigparty_id+"&fromdate="+fromdate+"&todate="+todate,
+        url: "/getparties/0",
+        dataType: "json",
+        cache: false,
+        success: function(data){ 
+            with (data.message)
+            {
+                if(Trim()=='true'){
+                    if(bigparty_id!="-1"){
+                        var partystr = "小团<select id='party_select' name='party_id' onchange='getmanagerlist(this.options[this.options.selectedIndex].value)'><option value='-1' selected>--</option>";
+                        for(var i=0;i<data.parties.length;i++){
+                            partystr += "<option value='"+data.parties[i][0]+"'>"+data.parties[i][1]+"</option>";
+                        }
+                        partystr += "</selected>";
+                        document.getElementById("party").innerHTML = partystr;
+                    }
+                }
+            }
+         }
+    }); 
+}
+
+function getmanagerlist(party_id){
+    if(party_id=="-1"){
+        document.getElementById("manager").innerHTML = "";
+    }
+    var fromdate = document.getElementById("fromdate").value;
+    var todate = document.getElementById("todate").value;
+    $.ajax({
+        type: "GET",
+        data: "party_id="+party_id+"&fromdate="+fromdate+"&todate="+todate,
+        url: "/getmanagers/0",
+        dataType: "json",
+        cache: false,
+        success: function(data){ 
+            with (data.message)
+            {
+                if(Trim()=='true'){
+                    if(party_id!="-1"){
+                        var managerstr = "经理<select id='manager_select' name='manager_id'><option value='-1' selected>--</option>";
+                        for(var i=0;i<data.managers.length;i++){
+                            managerstr += "<option value='"+data.managers[i][0]+"'>"+data.managers[i][1]+"</option>";
+                        }
+                        managerstr += "</selected>";
+                        document.getElementById("manager").innerHTML = managerstr;
+                    }
+                }
+            }
+         }
+    }); 
+}
+
+</script>
+<h5>经理续签率</h5>
+<h5><a href="/managerYear">经理年化进账统计</a></h5>
+<div class="input-append" >
+    <form action="/renewalRate" method="get">
+    起始日期
+    <input id="fromdate" value={{fromdate}} name="fromdate" onClick="WdatePicker()">
+    终止日期
+    <input id="todate" value={{todate}} name="todate" onClick="WdatePicker()">
+    <br />
+    <p id="field">职场
+    <select id="field_select" name="field_id" onchange="getbigpartylist(this.options[this.options.selectedIndex].value)">
+        <option value="-1">--</option>
+        {%for field in fields%}
+        {%ifequal field.id fid%}
+        <option value={{field.id}} selected>{{field.name}}</option>
+        {%else%}
+        <option value={{field.id}}>{{field.name}}</option>
+        {%endifequal%}
+        {%endfor%}
+    </select>
+    </p>
+    <p id="bigparty">
+    {%if bigparty%}
+    大团
+    <select id="bigparty_select" name="bigparty_id" onchange="getpartylist(this.options[this.options.selectedIndex].value)">
+        <option value="-1">--</option>
+        {%for bigparty in bigparties%}
+        {%ifequal bigparty.id bpid%}
+        <option value={{bigparty.id}} selected>{{bigparty.name}}</option>
+        {%else%}
+        <option value={{bigparty.id}}>{{bigparty.name}}</option>
+        {%endifequal%}
+        {%endfor%}
+    </select>
+    {%endif%}
+    </p>
+    <p id="party">
+    {%if party%}
+    小团
+    <select id="party_select" name="party_id" onchange="getmanagerlist(this.options[this.options.selectedIndex].value)">
+        <option value="-1">--</option>
+        {%for party in parties%}
+        {%ifequal party.id pid%}
+        <option value={{party.id}} selected>{{party.name}}</option>
+        {%else%}
+        <option value={{party.id}}>{{party.name}}</option>
+        {%endifequal%}
+        {%endfor%}
+    </select>
+    {%endif%}
+    </p>
+    <p id="manager">
+    {%if manager%}
+    经理
+    <select id="manager_select" name="manager_id")">
+        <option value="-1">--</option>
+        {%for manager in managers%}
+        {%ifequal manager.id mid%}
+        <option value={{manager.id}} selected>{{manager.name}}</option>
+        {%else%}
+        <option value={{manager.id}}>{{manager.name}}</option>
+        {%endifequal%}
+        {%endfor%}
+    </select>
+    {%endif%}
+    </p>
+    <input type="submit" value="提交" />
+</form>
+
+<form action="/outrenewalRate" method="get" target="_blank" onsubmit="setcontract_id()">
+    <input name="fromdate" style="display:none;" value={{fromdate}}>
+    <input name="todate" style="display:none;" value={{todate}}>
+    
+    <input name="field_id" style="display:none;" value={{fid}}>
+    {%if bigparty%}
+    <input name="bigparty_id" style="display:none;" value={{bpid}}>
+    {%endif%}
+    {%if party%}
+    <input name="party_id" style="display:none;" value={{pid}}>
+    {%endif%}
+    {%if manager%}
+    <input name="manager_id" style="display:none;" value={{mid}}>
+    {%endif%}
+    <input type="submit" value="导出excel">
+</form>
+
+</div>
+<div class="container">
+    <table class="table">
+        <thead>
+          <tr>
+            <th>职场</th>
+            <th>大团</th>
+            <th>小团</th>
+            <th>经理</th>
+            <th>续签率</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for item in renewalRate%}
+        <tr id="row_{{item.0}}">
+            <td>{{item.1.2.thisparty.thisbigparty.thisfield.name}}</td>
+            <td>{{item.1.2.thisparty.thisbigparty.name}}</td>
+            <td>{{item.1.2.thisparty.name}}</td>
+            <td>{{item.1.2.name}}</td>
+            <td>{{item.1.0}}</td>          
+        </tr>
+        {%endfor%}
+        </tbody>
+      </table>
+</div>
+
+        
+{% endblock %}

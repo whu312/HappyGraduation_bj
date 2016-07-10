@@ -1,0 +1,47 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+
+<h2>{{fromdate}}-{{todate}}<br />
+    兑付详情</h2>
+<div class="container">
+    <form action="/managercashDetail/{{mid}}/" method="post" target="_blank">
+        <input name="fromdate" value={{fromdate}} style="display:none" />
+        <input name="todate" value={{todate}} style="display:none" />    
+      <input type="submit" value="导出excel">
+      </form>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>到期日期</th>
+            <th>客户名</th>
+            <th>本金金额</th>
+            <th>理财经理</th>
+            <th>合同编号</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for item in items%}
+        <tr id="contract_{{item.id}}">
+            <td>{{item.enddate}}</a></td>
+            <td>{{item.client_name}}</td>
+            <td>{{item.money}}</td>
+            <td>{{item.thismanager.name}}</td>
+            <td><a href="/contract/{{item.id}}">{{item.number}}</a></td>
+        </tr>
+        {%endfor%}
+        </tbody>
+      </table>
+    </div>
+        
+{% endblock %}

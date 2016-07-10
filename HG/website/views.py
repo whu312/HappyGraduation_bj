@@ -378,7 +378,7 @@ def altercontract(req):
         thiscontract = contract.objects.get(id = int(id))
         thisnumber = req.POST.get("number",'')
         isexit = contract.objects.filter(number = thisnumber)
-        if thiscontract.number[:10] == thisnumber[:10] or len(isexit)==0:
+        if thiscontract.number == thisnumber or len(isexit)==0:
             thiscontract.number = req.POST.get("number",'')
             thiscontract.bank = req.POST.get("bank",'')
             thiscontract.bank_card = req.POST.get("bank_card",'')
@@ -387,6 +387,7 @@ def altercontract(req):
             thiscontract.city = req.POST.get("city",'')
             thiscontract.factorage = req.POST.get("factorage",'')  
             thiscontract.comment = req.POST.get("comment",'')  
+			
             tmpmoney = req.POST.get("money",'')
             if thiscontract.money != tmpmoney and thiscontract.renewal_father_id!=-1:
                 father_contract = contract.objects.get(id=int(thiscontract.renewal_father_id))
@@ -547,14 +548,26 @@ def repaytest(req):
         a["todate"] = todate
         return render_to_response("repaytest.html",a)
 
+
 @checkauth
 def queryrepayitems(req,type_id):
     a = {'user':req.user}
     a["indexlist"] = getindexlist(req)
-    if not checkjurisdiction(req,"还款查询"):
-        return render_to_response("jur.html",a)
-    
-    
+    print type_id
+    if type_id=="1":
+        if not checkjurisdiction(req,"还款查询"):
+            return render_to_response("jur.html",a)
+    elif type_id=="2":
+        print "here"
+        if not checkjurisdiction(req,"到期续单"):
+            return render_to_response("jur.html",a)
+    elif type_id=="3":
+        if not checkjurisdiction(req,"还款确认"):
+            return render_to_response("jur.html",a)
+    elif type_id=="4":
+        if not checkjurisdiction(req,"全部还款查询"):
+            return render_to_response("jur.html",a)
+        
     if req.method == "GET":
         fromdate = req.GET.get("fromdate",str(datetime.date.today()))
         todate = req.GET.get("todate",str(datetime.date.today()+datetime.timedelta(7))) #下一周
@@ -744,7 +757,8 @@ def querycontracts(req):
     a["indexlist"] = getindexlist(req)
     if not checkjurisdiction(req,"合同查询"):
         return render_to_response("jur.html",a)
-    
+    if checkjurisdiction(req,"合同导出"):
+        a["outjur"] = True
     if req.method == 'GET':
         try:
             thispage = int(req.GET.get("page",'1'))
@@ -1002,4 +1016,59 @@ def ajust(req,type_id):
             jsonstr = json.dumps(a,ensure_ascii=False)
             return HttpResponse(jsonstr,content_type='application/javascript')
         else:
+            a = {'user':req.user}
+            a["indexlist"] = getindexlist(req)
             return render_to_response('home.html', a)
+
+@csrf_exempt
+@checkauth
+def outcontracts(req):
+    if not checkjurisdiction(req,"合同查询"):
+        return render_to_response("jur.html",a)
+    def file_iterator(file_name, chunk_size=512):
+        with open(file_name,"rb") as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
+    def writefile(items):
+        w = Workbook()
+        ws = w.add_sheet('sheet1')
+        titles = [u"合同编号",u"姓名",u"身份证号",u"开户行",u"银行卡号",u"产品",u"金额",u"签约日",u"到期日",u"理财顾问",u"状态",u"是否已续签"]
+        for i in range(0,len(titles)):
+            ws.write(0,i,titles[i])
+        for i in range(0,len(items)):
+            ws.write(i+1,0,items[i].number)
+            ws.write(i+1,1,items[i].client_name)
+            ws.write(i+1,2,items[i].client_idcard)
+            ws.write(i+1,3,items[i].bank)
+            ws.write(i+1,4,items[i].bank_card)
+            ws.write(i+1,5,items[i].thisproduct.name)
+            ws.write(i+1,6,items[i].money)
+            ws.write(i+1,7,items[i].startdate)
+            ws.write(i+1,8,items[i].enddate)
+            ws.write(i+1,9,items[i].thismanager.name)
+            if items[i].status==1:
+                ws.write(i+1,10,u"未审核")
+            elif items[i].status==2:
+                ws.write(i+1,10,u"初审通过")
+            elif items[i].status==4:
+                ws.write(i+1,10,u"终审通过")
+            elif items[i].status==-1:
+                ws.write(i+1,10,u"合同终止")
+            if items[i].renewal_son_id==-1:
+                ws.write(i+1,11,u"否")
+            else:
+                ws.write(i+1,11,u"是")
+        filename = ".//tmpfolder//" + str(datetime.datetime.now()).split(" ")[1].replace(":","").replace(".","") + ".xls"
+        w.save(filename)
+        return filename
+    if req.method == "POST":
+        cs = contract.objects.all()
+        the_file_name = writefile(cs)
+        response = StreamingHttpResponse(file_iterator(the_file_name))
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="{0}"'.format("全部合同.xls")
+        return response

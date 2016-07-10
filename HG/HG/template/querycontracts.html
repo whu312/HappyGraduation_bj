@@ -72,7 +72,11 @@ text-align:center;
 </form>
 </div>
     <div class="container">
-   
+        {%if outjur%}
+        <form action="/outcontracts/" method="post" target="_blank"> 
+        <input type="submit" value="导出全部合同excel">
+        </form>
+        {%endif%}
       <table class="table">
         <thead>
           <tr>

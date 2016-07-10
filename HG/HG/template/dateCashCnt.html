@@ -1,0 +1,47 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+
+<h5>日期兑付</h5>
+<h5><a href="/managercashCnt">人员兑付</a></h5>
+<div class="input-append" >
+    <form action="/cashCnt" method="get">
+    起始日期
+    <input id="fromdate" value={{fromdate}} name="fromdate" onClick="WdatePicker()">
+    终止日期
+    <input id="todate" value={{todate}} name="todate" onClick="WdatePicker()">
+    <input type="submit" value="Search">
+    </form>
+</div>
+    <div class="container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>到期笔数</th>
+            <th>总金额</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for item in items%}
+        <tr>
+            <td><a href="/daycashCnt/{{item.0}}">{{item.0}}</a></td>
+            <td>{{item.1.0}}</td>
+            <td>{{item.1.1}}</td>
+        </tr>
+        {%endfor%}
+        </tbody>
+      </table>
+    </div>
+        
+{% endblock %}

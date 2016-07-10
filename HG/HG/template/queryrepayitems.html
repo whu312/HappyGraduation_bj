@@ -136,6 +136,7 @@ function setcontract_id()
           <tr>
             <th>还款日期</th>
             <th>还款金额</th>
+            <th>客户名</th>
             <th>操作</th>
             <th>明细</th>
             <th>所属合同编号</th>
@@ -146,6 +147,7 @@ function setcontract_id()
         <tr id="row_{{item.id}}">
             <td>{{item.repaydate}}</td>
             <td>{{item.repaymoney}}</td>
+            <td>{{item.thiscontract.client_name}}</td>
             <td>
                 <div id="operate_{{item.id}}">
                 {%ifequal item.status 1%}
