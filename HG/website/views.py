@@ -683,9 +683,12 @@ def checkcontracts(req):
                     allcount += 1
             startpos = ((thispage-1)*ONE_PAGE_NUM if (thispage-1)*ONE_PAGE_NUM<allcount else allcount)
             endpos = (thispage*ONE_PAGE_NUM if thispage*ONE_PAGE_NUM<allcount else allcount)
-            contracts = contract.objects.filter(status = 1)[startpos:endpos]
+            contracts = contract.objects.filter(status = 1).order_by("number")[startpos:endpos]
         else:
             contracts = contract.objects.filter(number=number)
+            allcount = len(contracts)
+        if allcount==0:
+            allcount = 1
         a['curpage'] = thispage
         a['allpage'] = (allcount-1)/ONE_PAGE_NUM + 1
         a['contracts'] = contracts

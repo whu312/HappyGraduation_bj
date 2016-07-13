@@ -7,7 +7,7 @@ function GoTo(var1){
  var PageNo=document.getElementById("PageNo").value;
 if (PageNo <= var1){
  var url = "";
- url = 'querycontracts?page='+PageNo;
+ url = 'checkcontracts?page='+PageNo;
  window.open(url, '_self');
 }
 else{
@@ -39,6 +39,12 @@ text-align:center;
 <body>
 <h2>合同审核</h2>
 
+    <div class="input-append" >
+    <form class="form-horizontal" action="/checkcontracts" method="get">
+        <input type="text" class="span2 search-query" name="number" placeholder="按合同号查询" style="width:218px">
+        <input type="submit" class="btn" value = "Search">
+    </form>
+    </div>
     <div class="container">
    
       <table class="table">
