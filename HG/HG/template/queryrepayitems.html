@@ -94,12 +94,25 @@ function clickrenewal(item_id){
     document.getElementById("renewal_area").style.display="block";
     document.getElementById("tmpitem_id").value = item_id;
 } 
-function setcontract_id()
-{
-    var c_id = document.getElementById("input_id").value;
-    document.getElementById("hidden_id").value = c_id;
+function makesure(){
+    var info = "确认一键还息?";
+    var r = confirm(info);
+    return r;
 }
 </script>
+{% ifequal message "true" %}
+        <div class="alert alert-error">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <h4>成功!</h4>一键还息成功
+        </div>
+{% endifequal %}
+{%ifequal message "false"%}
+        <div class="alert alert-error">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <h4>失败!</h4>部分前期利息未还
+        </div>
+{% endifequal %}
+
 {%ifequal type_id "1"%}
 <h2>还款查询</h2>
 {%endifequal%}
@@ -107,10 +120,15 @@ function setcontract_id()
 <h2>到期续单</h2>
 {%endifequal%}
 {%ifequal type_id "3"%}
-<h2>还款确认</h2>
+<h4>本金还款确认</h4>
+<h4><a href="/queryrepayitems/5">利息还款确认</a></h4>
 {%endifequal%}
 {%ifequal type_id "4"%}
 <h2>全部还款查询</h2>
+{%endifequal%}
+{%ifequal type_id "5"%}
+<h4>利息还款确认</h4>
+<h4><a href="/queryrepayitems/3">本金还款确认</a></h4>
 {%endifequal%}
 <div class="input-append" >
     <form action="/queryrepayitems/{{type_id}}" method="get">
@@ -118,16 +136,32 @@ function setcontract_id()
     <input id="fromdate" name="fromdate" value={{fromdate}} onClick="WdatePicker()">
     终止日期
     <input id="todate" name="todate" value={{todate}} onClick="WdatePicker()">
-    <input  id="input_id" type="text" name="contract_id" placeholder="合同编号">
+    <input  id="input_id" type="text" name="contract_id" value="{{number}}" placeholder="合同编号">
     <input type="submit" value="Search">
     </form>
     {%ifequal type_id "3"%}
+    <form action="/outputfile/{{type_id}}" method="get" target="_blank">
+    <input name="fromdate" style="display:none;" value={{fromdate}}>
+    <input name="todate" style="display:none;" value={{todate}}>
+    <input id="hidden_id" style="display:none;" type="text" value="{{number}}" name="contract_id" placeholder="合同编号">
+    <input type="submit" value="导出本金excel">
+    </form>
+    {%endifequal%}
+    {%ifequal type_id "5"%}
     <form action="/outputfile/{{type_id}}" method="get" target="_blank" onsubmit="setcontract_id()">
     <input name="fromdate" style="display:none;" value={{fromdate}}>
     <input name="todate" style="display:none;" value={{todate}}>
-    <input id="hidden_id" style="display:none;" type="text" name="contract_id" placeholder="合同编号">
-    <input type="submit" value="导出excel">
+    <input id="hidden_id" style="display:none;" type="text" value="{{number}}" name="contract_id" placeholder="合同编号">
+    <input type="submit" value="导出利息excel">
     </form>
+
+    <form action="/repayinterest" method="post" onsubmit="return makesure()">
+    <input name="fromdate" style="display:none;" value={{fromdate}}>
+    <input name="todate" style="display:none;" value={{todate}}>
+    <input id="hidden_id" style="display:none;" type="text" value="{{number}}" name="contract_id" placeholder="合同编号">
+    <input type="submit" value="一键还息">
+    </form>
+    
     {%endifequal%}
 </div>
     <div class="container">

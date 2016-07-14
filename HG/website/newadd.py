@@ -46,14 +46,26 @@ def filterRepayItems(fromdate,todate,contract_number,type_id):
     elif type_id=="3":
         if contract_id != -1:
             items = list(repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,
-                    thiscontract_id__exact=contract_id,status__exact=1))
+                    thiscontract_id__exact=contract_id,repaytype__gte=2,status__exact=1))
             tmpitem = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,
-                    thiscontract_id__exact=contract_id,status__exact=3)
+                    thiscontract_id__exact=contract_id,repaytype__gte=2,status__exact=3)
             items.extend(list(tmpitem))
         elif contract_number=="":
             items = list(repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,
-                    status__exact=3))
-            tmpitem = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,status__exact=1)
+                    repaytype__gte=2,status__exact=3))
+            tmpitem = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,repaytype__gte=2,status__exact=1)
+            items.extend(list(tmpitem))
+    elif type_id=="5":
+        if contract_id != -1:
+            items = list(repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,
+                    thiscontract_id__exact=contract_id,repaytype=1,status__exact=1))
+            tmpitem = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,
+                    thiscontract_id__exact=contract_id,repaytype=1,status__exact=3)
+            items.extend(list(tmpitem))
+        elif contract_number=="":
+            items = list(repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,
+                    repaytype=1,status__exact=3))
+            tmpitem = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,repaytype=1,status__exact=1)
             items.extend(list(tmpitem))
     return sorted(items,cmp=item_compare)
                 
@@ -104,10 +116,17 @@ def outputfile(req,type_id):
         contract_number = req.GET.get("contract_id","")
         sorteditems = filterRepayItems(fromdate,todate,contract_number,type_id)
         
+        if type_id=='3':
+            fileline = "本金转账数据.xls"
+        elif type_id=='5':
+            fileline = "利息转账数据.xls"
+        else:
+            fileline = "转账数据.xls"
+            
         the_file_name = writefile(sorteditems)
         response = StreamingHttpResponse(file_iterator(the_file_name))
         response['Content-Type'] = 'application/octet-stream'
-        response['Content-Disposition'] = 'attachment;filename="{0}"'.format("转账数据.xls")
+        response['Content-Disposition'] = 'attachment;filename="{0}"'.format(fileline)
         return response
     
 @checkauth
@@ -217,3 +236,46 @@ def showmanager(req,mid):
         allc = contract.objects.filter(thismanager_id=int(mid))
         a["contracts"] = allc
         return render_to_response("manager_contract.html",a)
+
+@csrf_exempt
+@checkauth
+def repayinterest(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    if not checkjurisdiction(req,"还款确认"):
+        return render_to_response("jur.html",a)
+    if req.method == "POST":
+        fromdate = req.POST.get("fromdate",str(datetime.date.today()))
+        todate = req.POST.get("todate",str(datetime.date.today()+datetime.timedelta(7))) #下一周
+        contract_number = req.POST.get("contract_id","")
+        
+        sorteditems = filterRepayItems(fromdate,todate,contract_number,"5") 
+        a["message"] = "true"
+        failitems = []
+        for thisitem in reversed(sorteditems):
+            print thisitem.status
+            if thisitem.status==1 or thisitem.status==3:
+                restitems = repayitem.objects.filter(thiscontract_id=thisitem.thiscontract.id,repaydate__lt=thisitem.repaydate)
+                thisrepaysuc = True
+                for restitem in restitems:
+                    if restitem.status==1:
+                        a["info"] = "前期款项还未还"
+                        print "false"
+                        a["message"] = "false"
+                        thisrepaysuc = False
+                        failitems.append(thisitem)
+                        break
+                if thisrepaysuc:
+                    thisitem.status += 1
+                    thisitem.save()
+                    thislog = loginfo(info="repay with %d of contract number=%s" % (thisitem.id,thisitem.thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
+                    thislog.save()
+                        
+       
+        a["repayitems"] = failitems
+        a["type_id"] = "5"
+        a["fromdate"] = fromdate
+        a["todate"] = todate
+        a["number"] = contract_number
+        
+        return render_to_response("queryrepayitems.html",a)

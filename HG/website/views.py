@@ -579,6 +579,7 @@ def queryrepayitems(req,type_id):
         a["type_id"] = type_id
         a["fromdate"] = fromdate
         a["todate"] = todate
+        a["number"] = contract_number
         return render_to_response("queryrepayitems.html",a)
 
 @checkauth
