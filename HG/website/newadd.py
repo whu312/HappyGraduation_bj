@@ -224,7 +224,11 @@ def changecon(req):
     if not checkjurisdiction(req,"新增合同"):
         return render_to_response("jur.html",a)
     if req.method == "GET":
-        allc = contract.objects.filter(operator_id=req.user.id,status__lte=2,status__gte=1)
+        number = req.GET.get("number","")
+        if number=="":
+            allc = contract.objects.filter(operator_id=req.user.id,status__lte=2,status__gte=1)
+        else:
+            allc = contract.objects.filter(operator_id=req.user.id,number=number,status__lte=2,status__gte=1)
         a["contracts"] = allc
         return render_to_response("changecon.html",a)
     

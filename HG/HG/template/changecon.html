@@ -64,7 +64,13 @@ text-align:center;
 </style>
 
 <body onload="count({{contract_size}})">
-<h2>合同修改</h2>
+    <h2>合同修改</h2>
+    <div class="input-append" >
+    <form class="form-horizontal" action="/changecon" method="get">
+        <input type="text" class="span2 search-query" name="number" placeholder="按合同编号查询" style="width:218px">
+        <input type="submit" class="btn" value = "Search">
+    </form>
+    </div>
     <div class="container">
    
       <table class="table">
