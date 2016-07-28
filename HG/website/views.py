@@ -54,6 +54,7 @@ def testhtml(req):
     return render_to_response("home.html")
     
 def cleanall(req):
+    '''
     repayitem.objects.all().delete()
     contract.objects.all().delete()
     loginfo.objects.all().delete()
@@ -64,6 +65,7 @@ def cleanall(req):
     users.objects.all().delete()
     cycle.objects.all().delete()
     User.objects.all().delete()
+    '''
     return HttpResponse("clean ok")
 
 def addcycle(req):
