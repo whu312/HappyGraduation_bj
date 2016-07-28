@@ -92,7 +92,7 @@ def dayrepay(req,onedate):
     a["totalrepay"] = totalrepay
     return render_to_response("dayrepay.html",a)
 
-def getitems(req):
+def getitems(req,lowest_status=0):
     fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
     todate = req.GET.get("todate",str(datetime.date.today()))
         
@@ -102,19 +102,19 @@ def getitems(req):
     manager_id = int(req.GET.get("manager_id","-1"))
     items = []
     if manager_id != -1:
-        items = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,thismanager_id=manager_id,status__gt=-1)
+        items = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,thismanager_id=manager_id,status__gte=lowest_status)
     elif party_id != -1:
         ms = manager.objects.filter(thisparty_id=party_id)
         for m in ms:
             items.extend(contract.objects.filter(startdate__gte=fromdate,
-                startdate__lte=todate,thismanager_id=m.id,status__gt=-1))
+                startdate__lte=todate,thismanager_id=m.id,status__gte=lowest_status))
     elif bigparty_id != -1:
         ps = party.objects.filter(thisbigparty_id=bigparty_id)
         for p in ps:
             ms = manager.objects.filter(thisparty_id=p.id)
             for m in ms:
                 items.extend(contract.objects.filter(startdate__gte=fromdate,
-                    startdate__lte=todate,thismanager_id=m.id,status__gt=-1))
+                    startdate__lte=todate,thismanager_id=m.id,status__gte=lowest_status))
     elif field_id != -1:
         bps = bigparty.objects.filter(thisfield_id=field_id)
         for bp in bps:
@@ -123,9 +123,9 @@ def getitems(req):
                 ms = manager.objects.filter(thisparty_id=p.id)
                 for m in ms:
                     items.extend(contract.objects.filter(startdate__gte=fromdate,
-                        startdate__lte=todate,thismanager_id=m.id,status__gt=-1))
+                        startdate__lte=todate,thismanager_id=m.id,status__gte=lowest_status))
     else:
-        items = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,status__gt=-1)
+        items = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,status__gte=lowest_status)
         
     return items
 
@@ -173,7 +173,7 @@ def intocnt(req,a={},type_id=0):
         a["indexlist"] = getindexlist(req)
         return render_to_response("jur.html",a)
     if req.method == "GET":
-        items = getitems(req)
+        items = getitems(req,4)
         totalmoney = 0.0
         for item in items:
             totalmoney += float(item.money)
@@ -380,7 +380,7 @@ def managerYear(req):
         return render_to_response("jur.html",a)
     if req.method == "GET":
         ansmap = {}
-        items = getitems(req)
+        items = getitems(req,4)
         for item in items:
             incnt = 0.0
             if item.thisproduct.closedtype == 'm':
@@ -452,7 +452,7 @@ def outputmanagerYear(req):
         return render_to_response("jur.html",a)
     if req.method == "GET":
         ansmap = {}
-        items = getitems(req)
+        items = getitems(req,4)
         for item in items:
             incnt = 0.0
             if item.thisproduct.closedtype == 'm':
@@ -480,7 +480,7 @@ def yearintocnt(req,a={},type_id=0):
         a["indexlist"] = getindexlist(req)
         return render_to_response("jur.html",a)
     if req.method == "GET":
-        items = getitems(req)
+        items = getitems(req,4)
         totalmoney = 0.0
         for item in items:
             if item.thisproduct.closedtype == 'm':
