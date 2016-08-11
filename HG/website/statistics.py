@@ -27,7 +27,7 @@ def repayplan(req):
         todate = req.GET.get("todate",str(datetime.date.today()+datetime.timedelta(7))) #未来一周
         if fromdate=="": fromdate = "1976-10-11"
         if todate=="": todate="2050-10-11"
-        items = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,status__gt=10)
+        items = repayitem.objects.filter(repaydate__gte=fromdate,repaydate__lte=todate,status__gt=0)
         daymap = {}
         for item in items:
             if item.repaydate in daymap:
@@ -40,22 +40,28 @@ def repayplan(req):
         for item in daymap:
             for elem in daymap[item]:
                 cnt = float(elem.repaymoney)
-                
-                if not item in dayinfo:
-                    dayinfo[item] = [0,0,0,0,0,0]
-                dayinfo[item][0] += 1
+                if elem.status<10:
+                    if not item in dayinfo:
+                        dayinfo[item] = [0,0,0,0,0,0]
+                    dayinfo[item][0] += 1
+                    dayinfo[item][1] += cnt
+                    if elem.status==1 or elem.status==3:
+                        dayinfo[item][4] += 1
+                        totalrepay[4] += 1
+                        dayinfo[item][5] += cnt
+                        totalrepay[5] += cnt
+                    elif elem.status==2 or elem.status==4 :
+                        dayinfo[item][2] += 1
+                        totalrepay[2] += 1
+                        dayinfo[item][3] += cnt
+                        totalrepay[3] += cnt
                 totalrepay[0] += 1
-                dayinfo[item][1] += cnt
                 totalrepay[1] += cnt
-                if elem.status==1 or elem.status==3:
-                    dayinfo[item][4] += 1
+                if elem.status==11 or elem.status==13:
                     totalrepay[4] += 1
-                    dayinfo[item][5] += cnt
                     totalrepay[5] += cnt
-                elif elem.status==2 or elem.status==4 :
-                    dayinfo[item][2] += 1
+                elif elem.status==12 or elem.status==14:
                     totalrepay[2] += 1
-                    dayinfo[item][3] += cnt
                     totalrepay[3] += cnt
         sortedlist = sorted(dayinfo.items(), key=lambda d: d[0], reverse=False)
         a["days"] = sortedlist
@@ -73,7 +79,7 @@ def dayrepay(req,onedate):
     
     if req.method == "POST":
         return
-    items = repayitem.objects.filter(repaydate__exact=onedate,status__gt=10)
+    items = repayitem.objects.filter(repaydate__exact=onedate,status__lt=10)
     totalrepay = [0,0,0,0,0,0]
     for elem in items:
         cnt = float(elem.repaymoney)
