@@ -12,17 +12,17 @@ margin-right:auto;
 </style>
 <script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
 
-<h5>客户累计统计</h5>
-<h5><a href="/singleguestCnt">客户单笔统计</a></h5>
+<h5>客户单笔统计</h5>
+<h5><a href="/guestCnt">客户累计统计</a></h5>
 <div class="input-append" >
-    <form action="/guestCnt" method="get">
+    <form action="/singleguestCnt" method="get">
     起始日期
     <input id="fromdate" value={{fromdate}} name="fromdate" onClick="WdatePicker()">
     终止日期
     <input id="todate" value={{todate}} name="todate" onClick="WdatePicker()">
     <input type="submit" value="Search">
     </form>
-    <form action="/guestCnt" method="post" target="_blank">
+    <form action="/singleguestCnt" method="post" target="_blank">
     <input name="fromdate" style="display:none;" value={{fromdate}}>
     <input name="todate" style="display:none;" value={{todate}}>
     <input type="submit" value="导出excel">
@@ -35,6 +35,7 @@ margin-right:auto;
             <th>客户姓名</th>
             <th>身份证号</th>
             <th>总金额</th>
+            <th>合同编号</th>
           </tr>
         </thead>
         <tbody>
@@ -43,6 +44,7 @@ margin-right:auto;
             <td>{{item.1.1.client_name}}</td>
             <td>{{item.1.1.client_idcard}}</td>
             <td>{{item.1.0}}</td>
+            <td><a href="/contract/{{item.1.1.id}}">{{item.1.1.number}}</a></td>
         </tr>
         {%endfor%}
         </tbody>

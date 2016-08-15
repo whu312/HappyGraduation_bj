@@ -885,11 +885,33 @@ def managercashDetail(req,m_id):
         response['Content-Type'] = 'application/octet-stream'
         response['Content-Disposition'] = 'attachment;filename="{0}"'.format("人员兑付表.xls")
         return response
+    
 @csrf_exempt
 @checkauth
 def guestCnt(req):
     a = {'user':req.user}
     a["indexlist"] = getindexlist(req)
+    def file_iterator(file_name, chunk_size=512):
+        with open(file_name,"rb") as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
+    def writefile(items):
+        w = Workbook()
+        ws = w.add_sheet('sheet1')
+        titles = [u"客户名",u"身份证号",u"金额"]
+        for i in range(0,len(titles)):
+            ws.write(0,i,titles[i])
+        for i in range(0,len(items)):
+            ws.write(i+1,0,items[i][1][1].client_name)
+            ws.write(i+1,1,items[i][1][1].client_idcard)
+            ws.write(i+1,2,items[i][1][0])
+        filename = ".//tmpfolder//" + str(datetime.datetime.now()).split(" ")[1].replace(":","").replace(".","") + ".xls"
+        w.save(filename)
+        return filename
     if not checkjurisdiction(req,"客户统计"):
         return render_to_response("jur.html",a)
     if req.method == "GET":
@@ -907,3 +929,76 @@ def guestCnt(req):
         a["fromdate"] = fromdate
         a["todate"] = todate
         return render_to_response("guestcnt.html",a)
+    if req.method == "POST":
+        fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.GET.get("todate",str(datetime.date.today()))
+        allc = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
+        guestmap = {}
+        for eachc in allc:
+            if eachc.client_idcard in guestmap:
+                guestmap[eachc.client_idcard][0] += float(eachc.money)
+            else:
+                guestmap[eachc.client_idcard] = [float(eachc.money),eachc]
+        guestlist = sorted(guestmap.items(), key=lambda d: d[1][0], reverse=True)
+        the_file_name = writefile(guestlist)
+        response = StreamingHttpResponse(file_iterator(the_file_name))
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="{0}"'.format("客户累计统计表.xls")
+        return response
+
+@csrf_exempt
+@checkauth
+def singleguestCnt(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    def file_iterator(file_name, chunk_size=512):
+        with open(file_name,"rb") as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
+    def writefile(items):
+        w = Workbook()
+        ws = w.add_sheet('sheet1')
+        titles = [u"客户名",u"身份证号",u"金额",u"合同编号"]
+        for i in range(0,len(titles)):
+            ws.write(0,i,titles[i])
+        for i in range(0,len(items)):
+            ws.write(i+1,0,items[i][1][1].client_name)
+            ws.write(i+1,1,items[i][1][1].client_idcard)
+            ws.write(i+1,2,items[i][1][0])
+            ws.write(i+1,3,items[i][1][1].number)
+        filename = ".//tmpfolder//" + str(datetime.datetime.now()).split(" ")[1].replace(":","").replace(".","") + ".xls"
+        w.save(filename)
+        return filename
+    
+    if not checkjurisdiction(req,"客户统计"):
+        return render_to_response("jur.html",a)
+    if req.method == "GET":
+        fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.GET.get("todate",str(datetime.date.today()))
+        allc = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
+        guestmap = {}
+        for eachc in allc:
+            guestmap[eachc.id] = [float(eachc.money),eachc]
+        guestlist = sorted(guestmap.items(), key=lambda d: d[1][0], reverse=True)
+        a["guestlist"] = guestlist
+        a["fromdate"] = fromdate
+        a["todate"] = todate
+        return render_to_response("singleguestcnt.html",a)
+    
+    if req.method == "POST":
+        fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.GET.get("todate",str(datetime.date.today()))
+        allc = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
+        guestmap = {}
+        for eachc in allc:
+            guestmap[eachc.id] = [float(eachc.money),eachc]
+        guestlist = sorted(guestmap.items(), key=lambda d: d[1][0], reverse=True)
+        the_file_name = writefile(guestlist)
+        response = StreamingHttpResponse(file_iterator(the_file_name))
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="{0}"'.format("客户单笔统计表.xls")
+        return response

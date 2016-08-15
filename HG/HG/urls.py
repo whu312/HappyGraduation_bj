@@ -88,5 +88,6 @@ urlpatterns = [
     url(r'^repayinterest$',repayinterest),
     #url(r'^outrenewalCnt$',outrenewalCnt),
     url(r'^guestCnt$',guestCnt),
+    url(r'^singleguestCnt$',singleguestCnt),
     #url(r'^product/([0-9]+)$', getproduct),
 ]
