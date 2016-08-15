@@ -885,3 +885,25 @@ def managercashDetail(req,m_id):
         response['Content-Type'] = 'application/octet-stream'
         response['Content-Disposition'] = 'attachment;filename="{0}"'.format("人员兑付表.xls")
         return response
+@csrf_exempt
+@checkauth
+def guestCnt(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    if not checkjurisdiction(req,"客户统计"):
+        return render_to_response("jur.html",a)
+    if req.method == "GET":
+        fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.GET.get("todate",str(datetime.date.today()))
+        allc = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
+        guestmap = {}
+        for eachc in allc:
+            if eachc.client_idcard in guestmap:
+                guestmap[eachc.client_idcard][0] += float(eachc.money)
+            else:
+                guestmap[eachc.client_idcard] = [float(eachc.money),eachc]
+        guestlist = sorted(guestmap.items(), key=lambda d: d[1][0], reverse=True)
+        a["guestlist"] = guestlist
+        a["fromdate"] = fromdate
+        a["todate"] = todate
+        return render_to_response("guestcnt.html",a)

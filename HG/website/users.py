@@ -246,7 +246,7 @@ def getindexlist(req):
         if thisuser.jurisdiction & int("10000000000000000",2):
             tmplist.append(("系统日志","/log"))
         anslist.append(("系统设置",tmplist))
-    if thisuser.jurisdiction & int("11101111100000000000000000",2):
+    if thisuser.jurisdiction & int("1011101111100000000000000000",2):
         tmplist = []
         if thisuser.jurisdiction & int("100000000000000000",2):
             tmplist.append(("还款计划","/repayplan"))
@@ -264,5 +264,7 @@ def getindexlist(req):
             tmplist.append(("续单统计","/renewalCnt"))
         if thisuser.jurisdiction & int("10000000000000000000000000",2):
             tmplist.append(("兑付统计","/cashCnt"))
+        if thisuser.jurisdiction & int("1000000000000000000000000000",2):
+            tmplist.append(("客户统计","/guestCnt"))
         anslist.append(("统计功能",tmplist))
     return anslist

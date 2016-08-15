@@ -1,0 +1,46 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+
+
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+</style>
+<script language="JavaScript" type="text/javascript" src="http://www.my97.net/dp/My97DatePicker/WdatePicker.js"></script>
+
+<h5>客户统计</h5>
+<div class="input-append" >
+    <form action="/guestCnt" method="get">
+    起始日期
+    <input id="fromdate" value={{fromdate}} name="fromdate" onClick="WdatePicker()">
+    终止日期
+    <input id="todate" value={{todate}} name="todate" onClick="WdatePicker()">
+    <input type="submit" value="Search">
+    </form>
+</div>
+    <div class="container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>客户姓名</th>
+            <th>身份证号</th>
+            <th>总金额</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for item in guestlist%}
+        <tr>
+            <td>{{item.1.1.client_name}}</td>
+            <td>{{item.1.1.client_idcard}}</td>
+            <td>{{item.1.0}}</td>
+        </tr>
+        {%endfor%}
+        </tbody>
+      </table>
+    </div>
+        
+{% endblock %}
