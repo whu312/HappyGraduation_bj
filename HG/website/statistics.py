@@ -930,8 +930,8 @@ def guestCnt(req):
         a["todate"] = todate
         return render_to_response("guestcnt.html",a)
     if req.method == "POST":
-        fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
-        todate = req.GET.get("todate",str(datetime.date.today()))
+        fromdate = req.POST.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.POST.get("todate",str(datetime.date.today()))
         allc = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
         guestmap = {}
         for eachc in allc:
@@ -990,8 +990,8 @@ def singleguestCnt(req):
         return render_to_response("singleguestcnt.html",a)
     
     if req.method == "POST":
-        fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
-        todate = req.GET.get("todate",str(datetime.date.today()))
+        fromdate = req.POST.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.POST.get("todate",str(datetime.date.today()))
         allc = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
         guestmap = {}
         for eachc in allc:
