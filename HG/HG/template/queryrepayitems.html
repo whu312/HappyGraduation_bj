@@ -132,10 +132,12 @@ function makesure(){
 {%endifequal%}
 <div class="input-append" >
     <form action="/queryrepayitems/{{type_id}}" method="get">
+    {%ifnotequal type_id "2"%}    
     起始日期
     <input id="fromdate" name="fromdate" value={{fromdate}} onClick="WdatePicker()">
     终止日期
     <input id="todate" name="todate" value={{todate}} onClick="WdatePicker()">
+    {%endifnotequal%}
     <input  id="input_id" type="text" name="contract_id" value="{{number}}" placeholder="合同编号">
     <input type="submit" value="Search">
     </form>

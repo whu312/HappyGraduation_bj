@@ -571,11 +571,17 @@ def queryrepayitems(req,type_id):
             return render_to_response("jur.html",a)
         
     if req.method == "GET":
-        fromdate = req.GET.get("fromdate",str(datetime.date.today()))
-        todate = req.GET.get("todate",str(datetime.date.today()+datetime.timedelta(7))) #下一周
+        fromdate = "1970-01-01"
+        todate = "2100-01-01"
+        sorteditems = []
         contract_number = req.GET.get("contract_id","")
-        
-        sorteditems = filterRepayItems(fromdate,todate,contract_number,type_id) 
+        if type_id=="2":
+            if contract_number != "":
+                sorteditems = filterRepayItems(fromdate,todate,contract_number,type_id)
+        else:
+            fromdate = req.GET.get("fromdate",str(datetime.date.today()))
+            todate = req.GET.get("todate",str(datetime.date.today()+datetime.timedelta(7))) #下一周
+            sorteditems = filterRepayItems(fromdate,todate,contract_number,type_id) 
                 
         a["repayitems"] = sorteditems
         a["type_id"] = type_id
