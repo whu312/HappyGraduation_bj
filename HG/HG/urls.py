@@ -41,6 +41,7 @@ urlpatterns = [
     url(r'^terminatecon$', terminatecon),
     url(r'^rollbackcontracts$', rollbackcontracts),
     url(r'^querycontracts$', querycontracts),
+    url(r'^searchonecontract$', searchonecontract),
     url(r'^altercontract$', altercontract),
     url(r'^newfield$', newfield),
     url(r'^newbigparty$', newbigparty),

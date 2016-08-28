@@ -1,0 +1,67 @@
+﻿{% extends 'base.html' %}
+
+{% block center %}
+<link href="static/css/bootstrap.css" rel="stylesheet" type="text/css" />
+<script>
+
+</script>
+<style>
+.input-append{
+text-align:center;
+margin-left:auto; 
+margin-right:auto;
+}
+.fenye{
+text-align:center;
+}
+</style>
+
+<h2>合同查询</h2>
+<div class="input-append" >
+ <form class="form-horizontal" action="/searchonecontract" method="get">
+    <input type="text" class="span2 search-query" name="number" placeholder="按合同编号查询" style="width:218px">
+        <input type="submit" class="btn" value = "Search">
+</form>
+</div>
+    <div class="container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>合同编号</th>
+            <th>姓名</th>
+            <th>身份证号</th>
+            <th>开户行</th>
+            <th>银行卡号</th>
+            <th>产品</th>
+            <th>金额</th>
+            <th>签约日</th>
+            <th>到期日</th>
+            <th>理财顾问</th>
+          </tr>
+        </thead>
+        <tbody>
+
+
+        {%for contract in contracts%}
+        <tr>
+            <td><a href="/contract/{{contract.id}}">{{contract.number}}</a></td>
+            <td>{{contract.client_name}}</td>
+            <td>{{contract.client_idcard}}</td>
+		    <td>{{contract.bank}}</td>
+			<td>{{contract.bank_card}}</td>
+            <td><a href="/product/{{contract.thisproduct.id}}">{{contract.thisproduct.name}}</a></td>
+			<td>{{contract.money}}</td>
+			<td>{{contract.startdate}}</td>
+			<td>{{contract.enddate}}</td>
+            <td>{{contract.thismanager.name}}</td>
+			
+        </tr>
+        {%endfor%}
+        </tbody>
+      </table>
+    </div>
+
+</body>
+</html>
+        
+{% endblock %}

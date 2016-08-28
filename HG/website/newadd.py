@@ -283,3 +283,16 @@ def repayinterest(req):
         a["number"] = contract_number
         
         return render_to_response("queryrepayitems.html",a)
+    
+@csrf_exempt
+@checkauth
+def searchonecontract(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    if not checkjurisdiction(req,"合同搜索"):
+        return render_to_response("jur.html",a)
+    if req.method == 'GET':
+        number = req.GET.get("number",'')
+        contracts = contract.objects.filter(number=number) 
+        a['contracts'] = contracts
+        return render_to_response("searchonecontract.html",a)
