@@ -524,11 +524,11 @@ def checkcontract(req):
 		contractid = req.POST.get("contractid",'')
 		thiscontract = contract.objects.get(id = int(contractid))
 		newstatus = int(req.POST.get('status',''))
-		if newstatus == 2:
+		if newstatus == 2 and thiscontract.status == 1:
 			thiscontract.status = newstatus
-		thiscontract.save()
-		thislog = loginfo(info="check contract with id=%s" % (thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
-		thislog.save()
+			thiscontract.save()
+			thislog = loginfo(info="check contract with id=%s" % (thiscontract.number),time=str(datetime.datetime.now()),thisuser=req.user)
+			thislog.save()
 		contracts = contract.objects.filter(status = 1)
 		allcount = contracts.count()
 		a['curpage'] = 1

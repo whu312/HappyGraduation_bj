@@ -292,7 +292,13 @@ def searchonecontract(req):
     if not checkjurisdiction(req,"合同搜索"):
         return render_to_response("jur.html",a)
     if req.method == 'GET':
+        contracts = []
         number = req.GET.get("number",'')
-        contracts = contract.objects.filter(number=number) 
+        contractbynum = contract.objects.filter(number=number)
+        contractbyname = contract.objects.filter(client_name=number)
+        if contractbynum.count() == 0:
+            contracts = contractbyname            
+        else :
+            contracts = contractbynum 
         a['contracts'] = contracts
         return render_to_response("searchonecontract.html",a)

@@ -3,7 +3,27 @@
 {% block center %}
 <link href="static/css/bootstrap.css" rel="stylesheet" type="text/css" />
 <script>
+function alter(var1){
+ var id = var1;
+ var url = "";
+ url = 'altercontract?contractid='+id;
+ window.open(url,'_self');
 
+}
+function check(var1){
+ var id = var1;
+ var url = "";
+ url = 'checkcontract?contractid='+id;
+ window.open(url,'_self');
+
+}
+function terminate(var1){
+ var id = var1;
+ var url = "";
+ url = 'terminatecon?contractid='+id;
+ window.open(url,'_self');
+
+}
 </script>
 <style>
 .input-append{
@@ -19,7 +39,7 @@ text-align:center;
 <h2>合同查询</h2>
 <div class="input-append" >
  <form class="form-horizontal" action="/searchonecontract" method="get">
-    <input type="text" class="span2 search-query" name="number" placeholder="按合同编号查询" style="width:218px">
+    <input type="text" class="span2 search-query" name="number" placeholder="按合同编号、客户名查询" style="width:218px">
         <input type="submit" class="btn" value = "Search">
 </form>
 </div>
@@ -37,6 +57,7 @@ text-align:center;
             <th>签约日</th>
             <th>到期日</th>
             <th>理财顾问</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody>
@@ -54,7 +75,27 @@ text-align:center;
 			<td>{{contract.startdate}}</td>
 			<td>{{contract.enddate}}</td>
             <td>{{contract.thismanager.name}}</td>
-			
+		    <td>
+            {% ifequal user.id contract.operator_id %}
+			{% ifequal contract.status 1 %}
+			<input type="button" value="修改"  style="width:40px; height:20px; margin:0px;padding:0px;" onclick="alter({{contract.id}})">
+			{% endifequal %}
+			{% ifequal contract.status 2 %}
+			<input type="button" value="修改"  style="width:40px; height:20px; margin:0px;padding:0px;" onclick="alter({{contract.id}})">
+			{% endifequal %}
+			{% endifequal %}
+			{% ifequal contract.status 4 %}
+			<input type="button" value="终止"  style="width:40px; height:20px; margin:0px;padding:0px;" onclick="terminate({{contract.id}})">
+			{% endifequal %}
+			{% ifequal  contract.status 1 %}
+			<input type="button" value="审核" style="width:40px; height:20px; margin:0px;padding:0px;" onclick="check({{contract.id}})">
+			{% endifequal %}
+			<!--
+			{% ifequal  contract.status 2 %}
+			<input type="button" value="回退" style="width:40px; height:20px; margin:0px;padding:0px;" onclick="rollback({{contract.id}})">
+			{% endifequal %} 
+			-->
+			</td>    
         </tr>
         {%endfor%}
         </tbody>
