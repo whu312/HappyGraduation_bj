@@ -25,7 +25,7 @@ function getbigpartylist(field_id){
     $.ajax({
         type: "GET",
         data: "field_id="+field_id+"&fromdate="+fromdate+"&todate="+todate,
-        url: "/getbigparties/yearintocnt",
+        url: "/getbigparties/0",
         dataType: "json",
         cache: false,
         success: function(data){ 
@@ -40,8 +40,6 @@ function getbigpartylist(field_id){
                         partystr += "</selected>";
                         document.getElementById("bigparty").innerHTML = partystr;
                     }
-                    document.getElementById("cnt").innerHTML = data.cnt;
-                    document.getElementById("totalm").innerHTML = data.totalmoney;
                 }
             }
          }
@@ -57,7 +55,7 @@ function getpartylist(bigparty_id){
     $.ajax({
         type: "GET",
         data: "bigparty_id="+bigparty_id+"&fromdate="+fromdate+"&todate="+todate,
-        url: "/getparties/yearintocnt",
+        url: "/getparties/0",
         dataType: "json",
         cache: false,
         success: function(data){ 
@@ -72,8 +70,6 @@ function getpartylist(bigparty_id){
                         partystr += "</selected>";
                         document.getElementById("party").innerHTML = partystr;
                     }
-                    document.getElementById("cnt").innerHTML = data.cnt;
-                    document.getElementById("totalm").innerHTML = data.totalmoney;
                 }
             }
          }
@@ -89,7 +85,7 @@ function getmanagerlist(party_id){
     $.ajax({
         type: "GET",
         data: "party_id="+party_id+"&fromdate="+fromdate+"&todate="+todate,
-        url: "/getmanagers/yearintocnt",
+        url: "/getmanagers/0",
         dataType: "json",
         cache: false,
         success: function(data){ 
@@ -97,91 +93,135 @@ function getmanagerlist(party_id){
             {
                 if(Trim()=='true'){
                     if(party_id!="-1"){
-                        var managerstr = "经理<select id='manager_select' name='manager_id' onchange='getpersoncnt(this.options[this.options.selectedIndex].value)'><option value='-1' selected>--</option>";
+                        var managerstr = "经理<select id='manager_select' name='manager_id'><option value='-1' selected>--</option>";
                         for(var i=0;i<data.managers.length;i++){
                             managerstr += "<option value='"+data.managers[i][0]+"'>"+data.managers[i][1]+"</option>";
                         }
                         managerstr += "</selected>";
                         document.getElementById("manager").innerHTML = managerstr;
                     }
-                    document.getElementById("cnt").innerHTML = data.cnt;
-                    document.getElementById("totalm").innerHTML = data.totalmoney;
                 }
             }
          }
     }); 
 }
 
-
-function getpersoncnt(manager_id){
-    var fromdate = document.getElementById("fromdate").value;
-    var todate = document.getElementById("todate").value;
-    $.ajax({
-        type: "GET",
-        data: "manager_id="+manager_id+"&fromdate="+fromdate+"&todate="+todate,
-        url: "/getpersoncnt/yearintocnt",
-        dataType: "json",
-        cache: false,
-        success: function(data){ 
-            with (data.message)
-            {
-                if(Trim()=='true'){
-                    document.getElementById("cnt").innerHTML = data.cnt;
-                    document.getElementById("totalm").innerHTML = data.totalmoney;
-                }
-            }
-         }
-    });
-}
-
-function datechange(){
-    if(document.getElementById("manager_select"))
-    {
-        getpersoncnt(document.getElementById("manager_select").value);
-    }
-    else if(document.getElementById("party_select"))
-    {
-        getmanagerlist(document.getElementById("party_select").value);
-    }
-    else if(document.getElementById("bigparty_select"))
-    {
-        getpartylist(document.getElementById("bigparty_select").value);
-    }
-    else if(document.getElementById("field_select"))
-    {
-        getbigpartylist(document.getElementById("field_select").value);
-    }
-}
-
 </script>
-
-
-<h5>年化进账统计</h5>
-<h5><a href="/managerDeduct2">经理提成统计</a></h5>
+<h5><a href="/yearintocnt">年化进账统计</a></h5>
+<H5>经理提成统计</h5>
 <div class="input-append" >
+    <form action="/managerDeduct" method="get">
     起始日期
-    <input id="fromdate" value={{fromdate}} onblur="datechange()" name="fromdate" onClick="WdatePicker()">
+    <input id="fromdate" value={{fromdate}} name="fromdate" onClick="WdatePicker()">
     终止日期
-    <input id="todate" value={{todate}} onblur="datechange()" name="todate" onClick="WdatePicker()">
-    <button class="btn">确定</button>
+    <input id="todate" value={{todate}} name="todate" onClick="WdatePicker()">
     <br />
     <p id="field">职场
     <select id="field_select" name="field_id" onchange="getbigpartylist(this.options[this.options.selectedIndex].value)">
-        <option value="-1" selected>--</option>
+        <option value="-1">--</option>
         {%for field in fields%}
+        {%ifequal field.id fid%}
+        <option value={{field.id}} selected>{{field.name}}</option>
+        {%else%}
         <option value={{field.id}}>{{field.name}}</option>
+        {%endifequal%}
         {%endfor%}
     </select>
     </p>
     <p id="bigparty">
+    {%if bigparty%}
+    大团
+    <select id="bigparty_select" name="bigparty_id" onchange="getpartylist(this.options[this.options.selectedIndex].value)">
+        <option value="-1">--</option>
+        {%for bigparty in bigparties%}
+        {%ifequal bigparty.id bpid%}
+        <option value={{bigparty.id}} selected>{{bigparty.name}}</option>
+        {%else%}
+        <option value={{bigparty.id}}>{{bigparty.name}}</option>
+        {%endifequal%}
+        {%endfor%}
+    </select>
+    {%endif%}
     </p>
     <p id="party">
+    {%if party%}
+    小团
+    <select id="party_select" name="party_id" onchange="getmanagerlist(this.options[this.options.selectedIndex].value)">
+        <option value="-1">--</option>
+        {%for party in parties%}
+        {%ifequal party.id pid%}
+        <option value={{party.id}} selected>{{party.name}}</option>
+        {%else%}
+        <option value={{party.id}}>{{party.name}}</option>
+        {%endifequal%}
+        {%endfor%}
+    </select>
+    {%endif%}
     </p>
     <p id="manager">
+    {%if manager%}
+    经理
+    <select id="manager_select" name="manager_id")">
+        <option value="-1">--</option>
+        {%for manager in managers%}
+        {%ifequal manager.id mid%}
+        <option value={{manager.id}} selected>{{manager.name}}</option>
+        {%else%}
+        <option value={{manager.id}}>{{manager.name}}</option>
+        {%endifequal%}
+        {%endfor%}
+    </select>
+    {%endif%}
     </p>
+    <input type="submit" value="提交" />
+</form>
+<form action="/managerDeduct" method="post" target="_blank">
+    <input name="fromdate" style="display:none;" value={{fromdate}}>
+    <input name="todate" style="display:none;" value={{todate}}>
+    
+    <input name="field_id" style="display:none;" value={{fid}}>
+    {%if bigparty%}
+    <input name="bigparty_id" style="display:none;" value={{bpid}}>
+    {%endif%}
+    {%if party%}
+    <input name="party_id" style="display:none;" value={{pid}}>
+    {%endif%}
+    {%if manager%}
+    <input name="manager_id" style="display:none;" value={{mid}}>
+    {%endif%}
+    <input type="submit" value="导出excel">
+</form>
 </div>
+
 <div class="container">
-    <h3>共计<m id="cnt">{{cnt}}</m>笔 &nbsp;&nbsp; 共<m id="totalm">{{totalmoney}}</m></h3><br />
+    <table class="table">
+        <thead>
+          <tr>
+            <th>职场</th>
+            <th>大团</th>
+            <th>小团</th>
+            <th>经理</th>
+            <th>新签业绩</th>
+	    <th>续签业绩</th>
+	    <th>总计</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%for item in mlist%}
+        <tr id="row_{{item.0}}">
+            <td>{{item.1.0.thisparty.thisbigparty.thisfield.name}}</td>
+            <td>{{item.1.0.thisparty.thisbigparty.name}}</td>
+            <td>{{item.1.0.thisparty.name}}</td>
+            <td>{{item.1.0.name}}</td>
+            <td>{{item.1.1}}</td>
+	    <td>{{item.1.2}}</td>
+	    <td>{{item.1.3}}</td>         
+        </tr>
+        {%endfor%}
+        </tbody>
+    </table>
+    
+    
 </div>
 
         

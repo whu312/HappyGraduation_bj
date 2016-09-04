@@ -875,7 +875,7 @@ def renewalcontract(req,repayitem_id):
     if not checkjurisdiction(req,"到期续单"):
         return render_to_response("jur.html",a)
     a['products'] = product.objects.all()
-    a['managers'] = manager.objects.all()
+    a['managers'] = manager.objects.raw("select * from website_manager order by convert(name USING gbk)")
     form = NewContractForm()
     a["form"] = form
     if req.method == 'GET':

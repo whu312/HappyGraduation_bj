@@ -90,5 +90,8 @@ urlpatterns = [
     #url(r'^outrenewalCnt$',outrenewalCnt),
     url(r'^guestCnt$',guestCnt),
     url(r'^singleguestCnt$',singleguestCnt),
+    url(r'^managerDeduct$',managerDeduct),
+    url(r'^deductDetail$',deductDetail),
+    url(r'^managerDeduct2$',managerDeduct2),
     #url(r'^product/([0-9]+)$', getproduct),
 ]
