@@ -635,7 +635,7 @@ def renewalRate(req):
             if item.renewal_son_id!=-1:
                 newc = contract.objects.filter(id=item.renewal_son_id)[0]
                 if newc.status>=4:
-                    bRenewal = Ture
+                    bRenewal = True
             if bRenewal:
                 if item.thismanager.id in ansmap:
                     ansmap[item.thismanager.id][0] += float(newc.money)
@@ -1123,7 +1123,7 @@ def managerDeduct2(req):
     
     def GetManagerDeductList(req,method):
 	ansmap = {}
-        items = getitems(req,method)
+        items = getitems(req,4,method)
         ansmap = {}
         for item in items:
             if item.renewal_father_id==-1:
