@@ -98,14 +98,24 @@ def dayrepay(req,onedate):
     a["totalrepay"] = totalrepay
     return render_to_response("dayrepay.html",a)
 
-def getitems(req,lowest_status=0):
-    fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
-    todate = req.GET.get("todate",str(datetime.date.today()))
+def getitems(req,lowest_status=4,method="get"):
+    if method == "get":
+        fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.GET.get("todate",str(datetime.date.today()))
         
-    field_id = int(req.GET.get("field_id","-1"))
-    party_id = int(req.GET.get("party_id","-1"))
-    bigparty_id = int(req.GET.get("bigparty_id","-1"))
-    manager_id = int(req.GET.get("manager_id","-1"))
+        field_id = int(req.GET.get("field_id","-1"))
+        party_id = int(req.GET.get("party_id","-1"))
+        bigparty_id = int(req.GET.get("bigparty_id","-1"))
+        manager_id = int(req.GET.get("manager_id","-1"))
+    elif method == "post":
+        fromdate = req.POST.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.POST.get("todate",str(datetime.date.today()))
+        
+        field_id = int(req.POST.get("field_id","-1"))
+        party_id = int(req.POST.get("party_id","-1"))
+        bigparty_id = int(req.POST.get("bigparty_id","-1"))
+        manager_id = int(req.POST.get("manager_id","-1"))
+
     items = []
     if manager_id != -1:
         items = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,thismanager_id=manager_id,status__gte=lowest_status)
@@ -135,7 +145,7 @@ def getitems(req,lowest_status=0):
         
     return items
 
-def GetEnddateItems(req):
+def GetEnddateItems(req,lowest_stauts):
     fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
     todate = req.GET.get("todate",str(datetime.date.today()))
         
@@ -145,19 +155,19 @@ def GetEnddateItems(req):
     manager_id = int(req.GET.get("manager_id","-1"))
     items = []
     if manager_id != -1:
-        items = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,thismanager_id=manager_id,status__gt=-1)
+        items = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,thismanager_id=manager_id,status__gte=lowest_status)
     elif party_id != -1:
         ms = manager.objects.filter(thisparty_id=party_id)
         for m in ms:
             items.extend(contract.objects.filter(enddate__gte=fromdate,
-                enddate__lte=todate,thismanager_id=m.id,status__gt=-1))
+                enddate__lte=todate,thismanager_id=m.id,status__gte=lowest_status))
     elif bigparty_id != -1:
         ps = party.objects.filter(thisbigparty_id=bigparty_id)
         for p in ps:
             ms = manager.objects.filter(thisparty_id=p.id)
             for m in ms:
                 items.extend(contract.objects.filter(enddate__gte=fromdate,
-                    enddate__lte=todate,thismanager_id=m.id,status__gt=-1))
+                    enddate__lte=todate,thismanager_id=m.id,status__gte=lowest_status))
     elif field_id != -1:
         bps = bigparty.objects.filter(thisfield_id=field_id)
         for bp in bps:
@@ -166,9 +176,9 @@ def GetEnddateItems(req):
                 ms = manager.objects.filter(thisparty_id=p.id)
                 for m in ms:
                     items.extend(contract.objects.filter(enddate__gte=fromdate,
-                        enddate__lte=todate,thismanager_id=m.id,status__gt=-1))
+                        enddate__lte=todate,thismanager_id=m.id,status__gte=lowest_status))
     else:
-        items = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
+        items = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gte=lowest_stauts)
         
     return items
 
@@ -285,7 +295,7 @@ def renewalCnt(req):
         return render_to_response("jur.html",a)
     if req.method == "GET":
         anslist = []
-        items = GetEnddateItems(req)
+        items = GetEnddateItems(req,4)
         for item in items:
             if item.renewal_son_id!=-1:
                 renewc = contract.objects.filter(id=item.renewal_son_id)[0]
@@ -360,7 +370,7 @@ def outrenewalCnt(req):
         return render_to_response("jur.html",a)
     if req.method == "GET":
         anslist = []
-        items = GetEnddateItems(req)
+        items = GetEnddateItems(req,4)
         for item in items:
             if item.renewal_son_id!=-1:
                 renewc = contract.objects.filter(id=item.renewal_son_id)[0]
@@ -617,11 +627,16 @@ def renewalRate(req):
         return render_to_response("jur.html",a)
     if req.method == "GET":
         ansmap = {}
-        items = GetEnddateItems(req)
+        items = GetEnddateItems(req,4)
         ansmap = {}
         for item in items:
+            bRenewal = False
+            newc = None
             if item.renewal_son_id!=-1:
                 newc = contract.objects.filter(id=item.renewal_son_id)[0]
+                if newc.status>=4:
+                    bRenewal = Ture
+            if bRenewal:
                 if item.thismanager.id in ansmap:
                     ansmap[item.thismanager.id][0] += float(newc.money)
                     ansmap[item.thismanager.id][1] += float(item.money)
@@ -694,7 +709,7 @@ def outputrenewalRate(req):
         return render_to_response("jur.html",a)
     if req.method == "GET":
         ansmap = {}
-        items = GetEnddateItems(req)
+        items = GetEnddateItems(req,4)
         ansmap = {}
         for item in items:
             if item.renewal_son_id!=-1:
@@ -794,7 +809,7 @@ def managercashCnt(req):
         return render_to_response("jur.html",a)
     if req.method == "GET":
         ansmap = {}
-        items = GetEnddateItems(req)
+        items = GetEnddateItems(req,4)
         for item in items:
             if item.renewal_son_id!=-1:
                 continue
@@ -1008,7 +1023,7 @@ def singleguestCnt(req):
 def managerDeduct(req):
     a = {'user':req.user}
     a["indexlist"] = getindexlist(req)
-    if not checkjurisdiction(req,"经理统计"):
+    if not checkjurisdiction(req,"年化进账统计"):
         return render_to_response("jur.html",a)
     def file_iterator(file_name, chunk_size=512):
         with open(file_name,"rb") as f:
@@ -1036,9 +1051,9 @@ def managerDeduct(req):
         w.save(filename)
         return filename
     
-    def GetManagerDeductList(req):
+    def GetManagerDeductList(req,method):
 	ansmap = {}
-        items = getitems(req)
+        items = getitems(req,4,method)
         ansmap = {}
         for item in items:
             if item.renewal_father_id==-1:
@@ -1058,7 +1073,7 @@ def managerDeduct(req):
 
     if req.method == "GET":
         
-        tmplist = GetManagerDeductList(req)
+        tmplist = GetManagerDeductList(req,"get")
         a["mlist"] = tmplist
         
         fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
@@ -1090,7 +1105,7 @@ def managerDeduct(req):
         return render_to_response("managerDeduct.html",a)
     
     if req.method == "POST":
-        tmplist = GetManagerDeductList(req)
+        tmplist = GetManagerDeductList(req,"post")
         
         the_file_name = writefile(tmplist)
         response = StreamingHttpResponse(file_iterator(the_file_name))
@@ -1103,12 +1118,12 @@ def managerDeduct(req):
 def managerDeduct2(req):
     a = {'user':req.user}
     a["indexlist"] = getindexlist(req)
-    if not checkjurisdiction(req,"年化进账统计"):
+    if not checkjurisdiction(req,"经理统计"):
         return render_to_response("jur.html",a)
     
-    def GetManagerDeductList(req):
+    def GetManagerDeductList(req,method):
 	ansmap = {}
-        items = getitems(req)
+        items = getitems(req,method)
         ansmap = {}
         for item in items:
             if item.renewal_father_id==-1:
@@ -1128,7 +1143,7 @@ def managerDeduct2(req):
 
     if req.method == "GET":
         
-        tmplist = GetManagerDeductList(req)
+        tmplist = GetManagerDeductList(req,"get")
         a["mlist"] = tmplist
         
         fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
@@ -1164,7 +1179,7 @@ def managerDeduct2(req):
 def deductDetail(req):
     a = {'user':req.user}
     a["indexlist"] = getindexlist(req)
-    if not checkjurisdiction(req,"经理统计"):
+    if not checkjurisdiction(req,"年化进账统计"):
         return render_to_response("jur.html",a)
     if req.method == "GET":
 	
