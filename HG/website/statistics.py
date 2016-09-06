@@ -1023,8 +1023,6 @@ def singleguestCnt(req):
 def managerDeduct(req):
     a = {'user':req.user}
     a["indexlist"] = getindexlist(req)
-    if not checkjurisdiction(req,"年化进账统计"):
-        return render_to_response("jur.html",a)
     def file_iterator(file_name, chunk_size=512):
         with open(file_name,"rb") as f:
             while True:
@@ -1195,9 +1193,9 @@ def deductDetail(req):
 	mid = req.GET.get("mid","")
         cs = []
         if itype == "new":
-            cs = contract.objects.filter(renewal_father_id=-1,startdate__gte=fromdate,startdate__lte=todate,thismanager_id=int(mid),status__gte=4)
+            cs = contract.objects.filter(renewal_father_id=-1,startdate__gte=fromdate,startdate__lte=todate,thismanager_id=int(mid))
         elif itype == "renewal":
-            cs = contract.objects.filter(renewal_father_id__gt=-1,startdate__gte=fromdate,startdate__lte=todate,thismanager_id=int(mid),status__gte=4)
+            cs = contract.objects.filter(renewal_father_id__gt=-1,startdate__gte=fromdate,startdate__lte=todate,thismanager_id=int(mid))
       
         a["contracts"] = cs
                     
