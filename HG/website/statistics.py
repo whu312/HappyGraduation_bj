@@ -1072,7 +1072,9 @@ def managerDeduct(req):
         return sorted(ansmap.iteritems(),key=lambda asd:asd[1][3],reverse=True)
 
     if req.method == "GET":
-        
+    	if not checkjurisdiction(req,"年化进账统计"):
+            return render_to_response("jur.html",a)
+   
         tmplist = GetManagerDeductList(req,"get")
         a["mlist"] = tmplist
         
@@ -1105,6 +1107,9 @@ def managerDeduct(req):
         return render_to_response("managerDeduct.html",a)
     
     if req.method == "POST":
+	if not (checkjurisdiction(req,"年化进账统计") or checkjurisdiction(req,"经理统计")):
+            return render_to_response("jur.html",a)
+
         tmplist = GetManagerDeductList(req,"post")
         
         the_file_name = writefile(tmplist)
@@ -1190,9 +1195,9 @@ def deductDetail(req):
 	mid = req.GET.get("mid","")
         cs = []
         if itype == "new":
-            cs = contract.objects.filter(renewal_father_id=-1,startdate__gte=fromdate,startdate__lte=todate,thismanager_id=int(mid))
+            cs = contract.objects.filter(renewal_father_id=-1,startdate__gte=fromdate,startdate__lte=todate,thismanager_id=int(mid),status__gte=4)
         elif itype == "renewal":
-            cs = contract.objects.filter(renewal_father_id__gt=-1,startdate__gte=fromdate,startdate__lte=todate,thismanager_id=int(mid))
+            cs = contract.objects.filter(renewal_father_id__gt=-1,startdate__gte=fromdate,startdate__lte=todate,thismanager_id=int(mid),status__gte=4)
       
         a["contracts"] = cs
                     
