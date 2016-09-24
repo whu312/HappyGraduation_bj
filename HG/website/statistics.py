@@ -145,7 +145,7 @@ def getitems(req,lowest_status=4,method="get"):
         
     return items
 
-def GetEnddateItems(req,lowest_stauts):
+def GetEnddateItems(req,lowest_status):
     fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
     todate = req.GET.get("todate",str(datetime.date.today()))
         
@@ -178,7 +178,7 @@ def GetEnddateItems(req,lowest_stauts):
                     items.extend(contract.objects.filter(enddate__gte=fromdate,
                         enddate__lte=todate,thismanager_id=m.id,status__gte=lowest_status))
     else:
-        items = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gte=lowest_stauts)
+        items = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gte=lowest_status)
         
     return items
 
