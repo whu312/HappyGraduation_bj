@@ -397,10 +397,9 @@ def altercontract(req):
                 #warnning
                 float(thiscontract.money)-float(tmpmoney)
                 if float(father_contract.money)<=float(tmpmoney):
-                    if float(father_contract.money)>float(thiscontract.money):
-                        thisrepayitem.repaymoney = str(float(thisrepayitem.repaymoney) + float(thiscontract.money) - float(father_contract.money))
+                    thisrepayitem.repaymoney = str(float(0))
                 else:
-                    thisrepayitem.repaymoney = str(float(thisrepayitem.repaymoney) + float(thiscontract.money) - float(tmpmoney))
+                    thisrepayitem.repaymoney = str(float(father_contract.money) - float(tmpmoney))
                 thisrepayitem.save()
             thiscontract.money = tmpmoney
             
