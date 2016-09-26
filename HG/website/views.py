@@ -395,11 +395,15 @@ def altercontract(req):
                 father_contract = contract.objects.get(id=int(thiscontract.renewal_father_id))
                 thisrepayitem = repayitem.objects.filter(thiscontract_id=father_contract.id,repaytype__gte=2)[0]
                 #warnning
-                float(thiscontract.money)-float(tmpmoney)
                 if float(father_contract.money)<=float(tmpmoney):
-                    thisrepayitem.repaymoney = str(float(0))
+                    if float(father_contract.money)>float(thiscontract.money):
+                        thisrepayitem.repaymoney = str(float(thisrepayitem.repaymoney) + float(thiscontract.money) - float(father_contract.money))
                 else:
-                    thisrepayitem.repaymoney = str(float(father_contract.money) - float(tmpmoney))
+                    if float(father_contract.money)>float(thiscontract.money):
+                        thisrepayitem.repaymoney = str(float(thisrepayitem.repaymoney) + float(thiscontract.money) - float(tmpmoney))
+                    else:
+                        thisrepayitem.repaymoney = str(float(thisrepayitem.repaymoney) + float(father_contract.money) - float(tmpmoney))
+                        
                 thisrepayitem.save()
             thiscontract.money = tmpmoney
             
