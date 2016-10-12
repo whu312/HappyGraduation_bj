@@ -1051,7 +1051,7 @@ def outcontracts(req):
     def writefile(items):
         w = Workbook()
         ws = w.add_sheet('sheet1')
-        titles = [u"合同编号",u"姓名",u"身份证号",u"开户行",u"银行卡号",u"产品",u"金额",u"签约日",u"到期日",u"理财顾问",u"状态",u"是否已续签"]
+        titles = [u"合同编号",u"姓名",u"身份证号",u"开户行",u"银行卡号",u"产品",u"金额",u"签约日",u"到期日",u"理财顾问",u"状态",u"是否已续签",u"手续费",u"备注"]
         for i in range(0,len(titles)):
             ws.write(0,i,titles[i])
         for i in range(0,len(items)):
@@ -1077,6 +1077,8 @@ def outcontracts(req):
                 ws.write(i+1,11,u"否")
             else:
                 ws.write(i+1,11,u"是")
+            ws.write(i+1,12,items[i].factorage)
+            ws.write(i+1,13,items[i].comment)
         filename = ".//tmpfolder//" + str(datetime.datetime.now()).split(" ")[1].replace(":","").replace(".","") + ".xls"
         w.save(filename)
         return filename
