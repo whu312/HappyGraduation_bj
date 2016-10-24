@@ -1105,7 +1105,7 @@ def managerDeduct(req):
         return render_to_response("managerDeduct.html",a)
     
     if req.method == "POST":
-	if not (checkjurisdiction(req,"年化进账统计") or checkjurisdiction(req,"经理统计")):
+        if not (checkjurisdiction(req,"年化进账统计") or checkjurisdiction(req,"经理统计")):
             return render_to_response("jur.html",a)
 
         tmplist = GetManagerDeductList(req,"post")
@@ -1200,12 +1200,10 @@ def deductDetail(req):
     if not checkjurisdiction(req,"年化进账统计"):
         return render_to_response("jur.html",a)
     if req.method == "GET":
-	
-	
         fromdate = req.GET.get("fromdate","")
         todate = req.GET.get("todate","")
-	itype = req.GET.get("type","")
-	mid = req.GET.get("mid","")
+        itype = req.GET.get("type","")
+        mid = req.GET.get("mid","")
         cs = []
         if itype == "new":
             cs = contract.objects.filter(renewal_father_id=-1,startdate__gte=fromdate,startdate__lte=todate,thismanager_id=int(mid))
@@ -1216,3 +1214,124 @@ def deductDetail(req):
                     
         return render_to_response("deductDetail.html",a)
    
+@csrf_exempt
+@checkauth
+def performanceDetail(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    def file_iterator(file_name, chunk_size=512):
+        with open(file_name,"rb") as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
+    def writefile(items):
+        w = Workbook()
+        ws = w.add_sheet('sheet1')
+        titles = [u"职场",u"大团",u"小团",u"经理",u"新签业绩",u"续签业绩",u"总计"]
+        for i in range(0,len(titles)):
+            ws.write(0,i,titles[i])
+        for i in range(0,len(items)):
+            ws.write(i+1,0,items[i][1][0].thisparty.thisbigparty.thisfield.name)
+            ws.write(i+1,1,items[i][1][0].thisparty.thisbigparty.name)
+            ws.write(i+1,2,items[i][1][0].thisparty.name)
+            ws.write(i+1,3,items[i][1][0].name)
+            ws.write(i+1,4,items[i][1][1])
+            ws.write(i+1,5,items[i][1][2])
+            ws.write(i+1,6,items[i][1][3])
+        filename = ".//tmpfolder//" + str(datetime.datetime.now()).split(" ")[1].replace(":","").replace(".","") + ".xls"
+        w.save(filename)
+        return filename
+    
+    def GetProductMap():
+        productmap = {}
+        allp = product.objects.all()
+        cnt = 0
+        for p in allp:
+            productmap[p.id] = cnt
+            cnt += 1
+        return productmap
+    def ParserInfoFromContract(onecontract):
+        
+    def GetManagerPerformanceList(req,method):
+        ansmap = {}
+        items = getitems(req,4,method)
+        
+        ansmap = {}
+        for item in items:
+            if item.thismanager.id in ansmap:
+                    ansmap[item.thismanager.id][1] += float(item.money)
+                    ansmap[item.thismanager.id][3] += float(item.money)
+                else:
+                    ansmap[item.thismanager.id] = []
+                    product_money = []
+                    for i in range(0,cnt):
+                        product_money.append(0)
+                    product_money[productmap[item.thisproduct.id]] = float(item.money)
+                    ansmap[item.thismanager.id].append(product_money)
+                    ansmap[item.thismanager.id].append(float(item.money))
+                    incnt = 0.0
+                    if item.thisproduct.closedtype == 'm':
+                        incnt += float(item.money)*item.thisproduct.closedperiod/12
+                    elif item.thisproduct.closedtype == 'd':
+                        incnt += float(item.money)*item.thisproduct.closedperiod/365
+                    ansmap[item.thismanager.id].append(incnt)
+                    ansmap.append(float(item.factorage))
+                    
+            else:
+                if item.thismanager.id in ansmap:
+                    ansmap[item.thismanager.id][2] += float(item.money)
+                    ansmap[item.thismanager.id][3] += float(item.money)
+                else:
+                    ansmap[item.thismanager.id] = [item.thismanager,0,float(item.money),float(item.money)]
+        
+        return sorted(ansmap.iteritems(),key=lambda asd:asd[1][3],reverse=True)
+
+    if req.method == "GET":
+    	if not checkjurisdiction(req,"年化进账统计"):
+            return render_to_response("jur.html",a)
+   
+        tmplist = GetManagerDeductList(req,"get")
+        a["mlist"] = tmplist
+        
+        fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.GET.get("todate",str(datetime.date.today()))
+        a["fromdate"] = fromdate
+        a["todate"] = todate
+        a["fields"] = field.objects.all()
+        fid = req.GET.get("field_id","-1")
+        a["fid"] = int(fid)
+        if fid!="-1":
+            bps = bigparty.objects.filter(thisfield_id=int(fid))
+            a["bigparty"] = True
+            a["bigparties"] = bps
+            bpid = req.GET.get("bigparty_id","-1")
+            a["bpid"] = int(bpid)
+            if bpid!="-1":
+                ps = party.objects.filter(thisbigparty_id=int(bpid))
+                a["party"] = True
+                a["parties"] = ps
+                pid = req.GET.get("party_id","-1")
+                a["pid"] = int(pid)
+                if pid!="-1":
+                    ms = manager.objects.filter(thisparty_id=int(pid))
+                    a["manager"] = True
+                    a["managers"] = ms
+                    mid = req.GET.get("manager_id","-1")
+                    a["mid"] = int(mid)
+                    
+        return render_to_response("managerDeduct.html",a)
+    
+    if req.method == "POST":
+        if not (checkjurisdiction(req,"年化进账统计") or checkjurisdiction(req,"经理统计")):
+            return render_to_response("jur.html",a)
+
+        tmplist = GetManagerDeductList(req,"post")
+        
+        the_file_name = writefile(tmplist)
+        response = StreamingHttpResponse(file_iterator(the_file_name))
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="{0}"'.format("经理提成表.xls")
+        return response
