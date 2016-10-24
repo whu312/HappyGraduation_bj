@@ -1131,13 +1131,17 @@ def managerDeduct2(req):
         for item in items:
             if item.renewal_father_id==-1:
                 if item.thismanager.id in ansmap:
-                    ansmap[item.thismanager.id][1] += float(item.money)
+                    ansmap[item.thismanager.id][1] += float(item.money) 
                     ansmap[item.thismanager.id][3] += float(item.money)
                 else:
                     ansmap[item.thismanager.id] = [item.thismanager,float(item.money),0,float(item.money)]
             else:
+                FatherContract = contract.objects.filter(id=item.renewal_father_id)[0]
                 if item.thismanager.id in ansmap:
-                    ansmap[item.thismanager.id][2] += float(item.money)
+                    newmoney = float(item.money) - float(FatherContract.money)
+                    
+                    ansmap[item.thismanager.id][1] += (newmoney > 0 and newmoney or 0)
+                    ansmap[item.thismanager.id][2] += (newmoney > 0 and float(FatherContract.money) or float(item.money))
                     ansmap[item.thismanager.id][3] += float(item.money)
                 else:
                     ansmap[item.thismanager.id] = [item.thismanager,0,float(item.money),float(item.money)]
@@ -1176,6 +1180,17 @@ def managerDeduct2(req):
                     a["mid"] = int(mid)
                     
         return render_to_response("managerDeduct2.html",a)
+    if req.method == "POST":
+	if not (checkjurisdiction(req,"年化进账统计") or checkjurisdiction(req,"经理统计")):
+            return render_to_response("jur.html",a)
+
+        tmplist = GetManagerDeductList(req,"post")
+        
+        the_file_name = writefile(tmplist)
+        response = StreamingHttpResponse(file_iterator(the_file_name))
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="{0}"'.format("经理提成表.xls")
+        return response
  
 @csrf_exempt
 @checkauth
