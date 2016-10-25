@@ -1254,6 +1254,53 @@ def performanceDetail(req):
             cnt += 1
         return productmap
     def ParserInfoFromContract(onecontract):
+        anslist = []
+        productmap = GetProductMap()
+        
+        product_mlist = [0]*len(productmap) # for i range(0,len(productmap)) ]
+        fmoney = float(onecontract.money)
+        product_mlist[productmap[onecontract.thismanager.id]] = fmoney
+        anslist.append(product_mlist)
+        anslist.append(fmoney) #进账额
+        incnt = 0.0
+        if onecontract.thisproduct.closedtype == 'm':
+            incnt += float(onecontract.money)*onecontract.thisproduct.closedperiod/12
+        elif onecontract.thisproduct.closedtype == 'd':
+            incnt += float(onecontract.money)*onecontract.thisproduct.closedperiod/365
+        anslist.append(incnt) #年化业绩总额
+        anslist.append(float(onecontract.factorage)) #手续费
+        if onecontract.renewal_father_id == -1:
+            anslist.append(0)
+            anslist.append(0) # 续单金额
+        else:
+            anslist.append(1) # 续单数
+            FatherContract = contract.objects.filter(id=item.renewal_father_id)[0]
+            renewal_money = float(FatherContract.money)
+            if renewal_money > fmoney:
+                renewal_money = fmoney
+            anslist.append(renewal_money)
+        anslist.append(fmoney) # 总金额
+        return anslist
+        
+    def InitInfoList():
+        anslist = []
+        productmap = GetProductMap()
+        product_mlist = [0]*len(productmap) # for i range(len(productmap)) ]
+        anslist = [product_mlist, 0, 0, 0, 0, 0, 0]
+        return anslist
+    
+    def addlist(list1, list2):
+        anslist = []
+        for i in range(0,len(list1)):
+            if isinstance(list1[i], list):
+                anslist.append(addlist(list1[i], list2[i]))
+            else:
+                anslist.append(list1[i] + list2[i])
+        return anslist
+    
+    def ParserDeductFromContract(onecontract):
+        anslist = [1,float(onecontract.money)]
+        return anslist
         
     def GetManagerPerformanceList(req,method):
         ansmap = {}
@@ -1261,41 +1308,39 @@ def performanceDetail(req):
         
         ansmap = {}
         for item in items:
+            cinfo = ParserInfoFromContract(item)
             if item.thismanager.id in ansmap:
-                    ansmap[item.thismanager.id][1] += float(item.money)
-                    ansmap[item.thismanager.id][3] += float(item.money)
-                else:
-                    ansmap[item.thismanager.id] = []
-                    product_money = []
-                    for i in range(0,cnt):
-                        product_money.append(0)
-                    product_money[productmap[item.thisproduct.id]] = float(item.money)
-                    ansmap[item.thismanager.id].append(product_money)
-                    ansmap[item.thismanager.id].append(float(item.money))
-                    incnt = 0.0
-                    if item.thisproduct.closedtype == 'm':
-                        incnt += float(item.money)*item.thisproduct.closedperiod/12
-                    elif item.thisproduct.closedtype == 'd':
-                        incnt += float(item.money)*item.thisproduct.closedperiod/365
-                    ansmap[item.thismanager.id].append(incnt)
-                    ansmap.append(float(item.factorage))
-                    
+                ansmap[item.thismanager.id] = addlist(ansmap[item.thismanager.id], cinfo)
             else:
-                if item.thismanager.id in ansmap:
-                    ansmap[item.thismanager.id][2] += float(item.money)
-                    ansmap[item.thismanager.id][3] += float(item.money)
-                else:
-                    ansmap[item.thismanager.id] = [item.thismanager,0,float(item.money),float(item.money)]
+                ansmap[item.thismanager.id] = cinfo
         
-        return sorted(ansmap.iteritems(),key=lambda asd:asd[1][3],reverse=True)
+        otheritems = GetEnddateItems(req,4)
+        for item in otheritems:
+            if item.renewal_son_id!=-1:
+                continue
+            cinfo = ParserDeductFromContract(item)
+            if item.thismanager.id in ansmap:
+                ansmap[item.thismanager.id][7] += cinfo[0]
+                ansmap[item.thismanager.id][8] += cinfo[1]
+            else:
+                ansmap[item.thismanager.id] = InitInfoList()
+                ansmap[item.thismanager.id].append(cinfo[0])
+                ansmap[item.thismanager.id].append(cinfo[1])
+        
+        for m in ansmap:
+            ansmap[m][6] = ansmap[m][5] / ansmap[m][6]
+            manager_here = manager.objects.filter(id=m)[0]
+            ansmap.insert(0,manager_here)
+        
+        return sorted(ansmap.iteritems(),key=lambda asd:asd[2],reverse=True)
 
     if req.method == "GET":
     	if not checkjurisdiction(req,"年化进账统计"):
             return render_to_response("jur.html",a)
    
-        tmplist = GetManagerDeductList(req,"get")
+        tmplist = GetManagerPerformanceList(req,"get")
         a["mlist"] = tmplist
-        
+        a["plist"] =  product.objects.all()
         fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
         todate = req.GET.get("todate",str(datetime.date.today()))
         a["fromdate"] = fromdate
@@ -1322,8 +1367,8 @@ def performanceDetail(req):
                     mid = req.GET.get("manager_id","-1")
                     a["mid"] = int(mid)
                     
-        return render_to_response("managerDeduct.html",a)
-    
+        return render_to_response("performanceDetail.html",a)
+'''    
     if req.method == "POST":
         if not (checkjurisdiction(req,"年化进账统计") or checkjurisdiction(req,"经理统计")):
             return render_to_response("jur.html",a)
@@ -1335,3 +1380,4 @@ def performanceDetail(req):
         response['Content-Type'] = 'application/octet-stream'
         response['Content-Disposition'] = 'attachment;filename="{0}"'.format("经理提成表.xls")
         return response
+'''
