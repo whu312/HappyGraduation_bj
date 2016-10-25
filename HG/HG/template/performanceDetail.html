@@ -203,7 +203,7 @@ function getmanagerlist(party_id){
             <th>小团</th>
             <th>经理</th>
             {%for item in plist%}
-            <th>产品{{item.name}}</th>
+            <th>{{item.name}}</th>
             {%endfor%}
             <th>进账额</th>
 	        <th>年化业绩总额</th>
@@ -217,22 +217,22 @@ function getmanagerlist(party_id){
         </thead>
         <tbody>
         {%for item in mlist%}
-        <tr id="row_{{item.0.id}}">
-            <td>{{item.0.thisparty.thisbigparty.thisfield.name}}</td>
-            <td>{{item.0.thisparty.thisbigparty.name}}</td>
-            <td>{{item.0.thisparty.name}}</td>
-            <td>{{item.0.name}}</td>
-            {%for p in item.1%}
+        <tr id="row_{{item.1.0.id}}">
+            <td>{{item.1.0.thisparty.thisbigparty.thisfield.name}}</td>
+            <td>{{item.1.0.thisparty.thisbigparty.name}}</td>
+            <td>{{item.1.0.thisparty.name}}</td>
+            <td>{{item.1.0.name}}</td>
+            {%for p in item.1.1%}
             <td>{{p}}</td>
             {%endfor%}
-            <td>{{item.2}}</td>    
-            <td>{{item.3}}</td>
-            <td>{{item.4}}</td>
-            <td>{{item.5}}</td>
-            <td>{{item.6}}</td>
-            <td>{{item.7}}</td>
-            <td>{{item.8}}</td>  
-            <td>{{item.9}}</td> 
+            <td>{{item.1.2}}</td>    
+            <td>{{item.1.3}}</td>
+            <td>{{item.1.4}}</td>
+            <td>{{item.1.5}}</td>
+            <td>{{item.1.6}}</td>
+            <td>{{item.1.7}}</td>
+            <td>{{item.1.8}}</td>  
+            <td>{{item.1.9}}</td> 
         </tr>
         {%endfor%}
         </tbody>

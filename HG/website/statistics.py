@@ -145,14 +145,23 @@ def getitems(req,lowest_status=4,method="get"):
         
     return items
 
-def GetEnddateItems(req,lowest_status):
-    fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
-    todate = req.GET.get("todate",str(datetime.date.today()))
+def GetEnddateItems(req,lowest_status,method="get"):
+    if method == "get":
+        fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.GET.get("todate",str(datetime.date.today()))
         
-    field_id = int(req.GET.get("field_id","-1"))
-    party_id = int(req.GET.get("party_id","-1"))
-    bigparty_id = int(req.GET.get("bigparty_id","-1"))
-    manager_id = int(req.GET.get("manager_id","-1"))
+        field_id = int(req.GET.get("field_id","-1"))
+        party_id = int(req.GET.get("party_id","-1"))
+        bigparty_id = int(req.GET.get("bigparty_id","-1"))
+        manager_id = int(req.GET.get("manager_id","-1"))
+    else:
+        fromdate = req.POST.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
+        todate = req.POST.get("todate",str(datetime.date.today()))
+        
+        field_id = int(req.POST.get("field_id","-1"))
+        party_id = int(req.POST.get("party_id","-1"))
+        bigparty_id = int(req.POST.get("bigparty_id","-1"))
+        manager_id = int(req.POST.get("manager_id","-1"))
     items = []
     if manager_id != -1:
         items = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,thismanager_id=manager_id,status__gte=lowest_status)
@@ -1230,7 +1239,13 @@ def performanceDetail(req):
     def writefile(items):
         w = Workbook()
         ws = w.add_sheet('sheet1')
-        titles = [u"职场",u"大团",u"小团",u"经理",u"新签业绩",u"续签业绩",u"总计"]
+        titles = [u"职场",u"大团",u"小团",u"经理",u"进账额",u"年化业绩总额",u"手续费",u"续单数",u"续单金额",u"续单比例",u"应兑数",u"应兑金额"]
+        ps = product.objects.all()
+        index = 4
+        for p in ps:
+            titles.insert(index, p.name)
+            index += 1
+        
         for i in range(0,len(titles)):
             ws.write(0,i,titles[i])
         for i in range(0,len(items)):
@@ -1238,9 +1253,13 @@ def performanceDetail(req):
             ws.write(i+1,1,items[i][1][0].thisparty.thisbigparty.name)
             ws.write(i+1,2,items[i][1][0].thisparty.name)
             ws.write(i+1,3,items[i][1][0].name)
-            ws.write(i+1,4,items[i][1][1])
-            ws.write(i+1,5,items[i][1][2])
-            ws.write(i+1,6,items[i][1][3])
+            index = 4
+            for pm in items[i][1][1]:
+                ws.write(i+1,index,pm)
+                index += 1
+            for k in range(2,10):
+                ws.write(i+1,index,items[i][1][k])
+                index += 1
         filename = ".//tmpfolder//" + str(datetime.datetime.now()).split(" ")[1].replace(":","").replace(".","") + ".xls"
         w.save(filename)
         return filename
@@ -1259,9 +1278,10 @@ def performanceDetail(req):
         
         product_mlist = [0]*len(productmap) # for i range(0,len(productmap)) ]
         fmoney = float(onecontract.money)
-        product_mlist[productmap[onecontract.thismanager.id]] = fmoney
+        product_mlist[productmap[onecontract.thisproduct.id]] = fmoney
         anslist.append(product_mlist)
         anslist.append(fmoney) #进账额
+        father_money = 0.0
         incnt = 0.0
         if onecontract.thisproduct.closedtype == 'm':
             incnt += float(onecontract.money)*onecontract.thisproduct.closedperiod/12
@@ -1274,12 +1294,13 @@ def performanceDetail(req):
             anslist.append(0) # 续单金额
         else:
             anslist.append(1) # 续单数
-            FatherContract = contract.objects.filter(id=item.renewal_father_id)[0]
+            FatherContract = contract.objects.filter(id=onecontract.renewal_father_id)[0]
             renewal_money = float(FatherContract.money)
+            father_money = float(FatherContract.money)
             if renewal_money > fmoney:
                 renewal_money = fmoney
             anslist.append(renewal_money)
-        anslist.append(fmoney) # 总金额
+        anslist.append(father_money) # 总金额
         return anslist
         
     def InitInfoList():
@@ -1314,7 +1335,11 @@ def performanceDetail(req):
             else:
                 ansmap[item.thismanager.id] = cinfo
         
-        otheritems = GetEnddateItems(req,4)
+        for m in ansmap:
+            ansmap[m].append(0)
+            ansmap[m].append(0)
+            
+        otheritems = GetEnddateItems(req,4,method)
         for item in otheritems:
             if item.renewal_son_id!=-1:
                 continue
@@ -1328,11 +1353,14 @@ def performanceDetail(req):
                 ansmap[item.thismanager.id].append(cinfo[1])
         
         for m in ansmap:
-            ansmap[m][6] = ansmap[m][5] / ansmap[m][6]
+            if ansmap[m][6] != 0:
+                ansmap[m][6] = ansmap[m][5] / ansmap[m][6]
+            else:
+                ansmap[m][6] = 0
             manager_here = manager.objects.filter(id=m)[0]
-            ansmap.insert(0,manager_here)
+            ansmap[m].insert(0,manager_here)
         
-        return sorted(ansmap.iteritems(),key=lambda asd:asd[2],reverse=True)
+        return sorted(ansmap.iteritems(),key=lambda asd:asd[1][2],reverse=True)
 
     if req.method == "GET":
     	if not checkjurisdiction(req,"年化进账统计"):
@@ -1340,6 +1368,7 @@ def performanceDetail(req):
    
         tmplist = GetManagerPerformanceList(req,"get")
         a["mlist"] = tmplist
+        print tmplist
         a["plist"] =  product.objects.all()
         fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
         todate = req.GET.get("todate",str(datetime.date.today()))
@@ -1368,16 +1397,15 @@ def performanceDetail(req):
                     a["mid"] = int(mid)
                     
         return render_to_response("performanceDetail.html",a)
-'''    
+    
     if req.method == "POST":
-        if not (checkjurisdiction(req,"年化进账统计") or checkjurisdiction(req,"经理统计")):
+        if not checkjurisdiction(req,"年化进账统计"):
             return render_to_response("jur.html",a)
 
-        tmplist = GetManagerDeductList(req,"post")
+        tmplist = GetManagerPerformanceList(req,"post")
         
         the_file_name = writefile(tmplist)
         response = StreamingHttpResponse(file_iterator(the_file_name))
         response['Content-Type'] = 'application/octet-stream'
-        response['Content-Disposition'] = 'attachment;filename="{0}"'.format("经理提成表.xls")
+        response['Content-Disposition'] = 'attachment;filename="{0}"'.format("业绩明细表.xls")
         return response
-'''
