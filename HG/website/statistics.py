@@ -1368,7 +1368,6 @@ def performanceDetail(req):
    
         tmplist = GetManagerPerformanceList(req,"get")
         a["mlist"] = tmplist
-        print tmplist
         a["plist"] =  product.objects.all()
         fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
         todate = req.GET.get("todate",str(datetime.date.today()))
