@@ -1289,25 +1289,13 @@ def performanceDetail(req):
             incnt += float(onecontract.money)*onecontract.thisproduct.closedperiod/365
         anslist.append(incnt) #年化业绩总额
         anslist.append(float(onecontract.factorage)) #手续费
-        if onecontract.renewal_father_id == -1:
-            anslist.append(0)
-            anslist.append(0) # 续单金额
-        else:
-            anslist.append(1) # 续单数
-            FatherContract = contract.objects.filter(id=onecontract.renewal_father_id)[0]
-            renewal_money = float(FatherContract.money)
-            father_money = float(FatherContract.money)
-            if renewal_money > fmoney:
-                renewal_money = fmoney
-            anslist.append(renewal_money)
-        anslist.append(father_money) # 总金额
         return anslist
         
     def InitInfoList():
         anslist = []
         productmap = GetProductMap()
         product_mlist = [0]*len(productmap) # for i range(len(productmap)) ]
-        anslist = [product_mlist, 0, 0, 0, 0, 0, 0]
+        anslist = [product_mlist, 0, 0, 0]
         return anslist
     
     def addlist(list1, list2):
@@ -1320,7 +1308,12 @@ def performanceDetail(req):
         return anslist
     
     def ParserDeductFromContract(onecontract):
-        anslist = [1,float(onecontract.money)]
+        if onecontract.renewal_son_id == -1:
+            anslist = [0,0,float(onecontract.money),1,float(onecontract.money)]
+        else:
+            son_contract = contract.objects.filter(id=onecontract.renewal_son_id)[0]
+            renewal_money = float(son_contract.money)
+            anslist = [1,renewal_money,float(onecontract.money),1,float(onecontract.money)]
         return anslist
         
     def GetManagerPerformanceList(req,method):
@@ -1336,25 +1329,29 @@ def performanceDetail(req):
                 ansmap[item.thismanager.id] = cinfo
         
         for m in ansmap:
-            ansmap[m].append(0)
-            ansmap[m].append(0)
+            for i in range(0,5):
+                ansmap[m].append(0)
             
         otheritems = GetEnddateItems(req,4,method)
         for item in otheritems:
-            if item.renewal_son_id!=-1:
-                continue
             cinfo = ParserDeductFromContract(item)
             if item.thismanager.id in ansmap:
-                ansmap[item.thismanager.id][7] += cinfo[0]
-                ansmap[item.thismanager.id][8] += cinfo[1]
+                ansmap[item.thismanager.id][4] += cinfo[0]
+                ansmap[item.thismanager.id][5] += cinfo[1]
+                ansmap[item.thismanager.id][6] += cinfo[2]
+                ansmap[item.thismanager.id][7] += cinfo[3]
+                ansmap[item.thismanager.id][8] += cinfo[4]
             else:
                 ansmap[item.thismanager.id] = InitInfoList()
                 ansmap[item.thismanager.id].append(cinfo[0])
                 ansmap[item.thismanager.id].append(cinfo[1])
+                ansmap[item.thismanager.id].append(cinfo[2])
+                ansmap[item.thismanager.id].append(cinfo[3])
+                ansmap[item.thismanager.id].append(cinfo[4])
         
         for m in ansmap:
             if ansmap[m][6] != 0:
-                ansmap[m][6] = ansmap[m][5] / ansmap[m][6]
+                ansmap[m][6] = round(ansmap[m][5] / ansmap[m][6], 2)
             else:
                 ansmap[m][6] = 0
             manager_here = manager.objects.filter(id=m)[0]
