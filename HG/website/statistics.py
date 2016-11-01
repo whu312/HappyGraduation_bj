@@ -1313,6 +1313,8 @@ def performanceDetail(req):
         else:
             son_contract = contract.objects.filter(id=onecontract.renewal_son_id)[0]
             renewal_money = float(son_contract.money)
+            if renewal_money > float(onecontract.money):
+                renewal_money = float(onecontract.money)
             anslist = [1,renewal_money,float(onecontract.money),1,float(onecontract.money)]
         return anslist
         
@@ -1335,19 +1337,23 @@ def performanceDetail(req):
         otheritems = GetEnddateItems(req,4,method)
         for item in otheritems:
             cinfo = ParserDeductFromContract(item)
-            if item.thismanager.id in ansmap:
-                ansmap[item.thismanager.id][4] += cinfo[0]
-                ansmap[item.thismanager.id][5] += cinfo[1]
-                ansmap[item.thismanager.id][6] += cinfo[2]
-                ansmap[item.thismanager.id][7] += cinfo[3]
-                ansmap[item.thismanager.id][8] += cinfo[4]
+            manager_id = item.thismanager.id
+            if item.renewal_son_id != -1:
+                sonc = contract.objects.filter(id=item.renewal_son_id)[0]
+                manager_id = sonc.thismanager.id
+            if manager_id in ansmap:
+                ansmap[manager_id][4] += cinfo[0]
+                ansmap[manager_id][5] += cinfo[1]
+                ansmap[manager_id][6] += cinfo[2]
+                ansmap[manager_id][7] += cinfo[3]
+                ansmap[manager_id][8] += cinfo[4]
             else:
-                ansmap[item.thismanager.id] = InitInfoList()
-                ansmap[item.thismanager.id].append(cinfo[0])
-                ansmap[item.thismanager.id].append(cinfo[1])
-                ansmap[item.thismanager.id].append(cinfo[2])
-                ansmap[item.thismanager.id].append(cinfo[3])
-                ansmap[item.thismanager.id].append(cinfo[4])
+                ansmap[manager_id] = InitInfoList()
+                ansmap[manager_id].append(cinfo[0])
+                ansmap[manager_id].append(cinfo[1])
+                ansmap[manager_id].append(cinfo[2])
+                ansmap[manager_id].append(cinfo[3])
+                ansmap[manager_id].append(cinfo[4])
         
         for m in ansmap:
             if ansmap[m][6] != 0:
