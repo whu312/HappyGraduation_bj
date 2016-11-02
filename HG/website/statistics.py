@@ -1288,7 +1288,10 @@ def performanceDetail(req):
         elif onecontract.thisproduct.closedtype == 'd':
             incnt += float(onecontract.money)*onecontract.thisproduct.closedperiod/365
         anslist.append(incnt) #年化业绩总额
-        anslist.append(float(onecontract.factorage)) #手续费
+        try:
+            anslist.append(float(onecontract.factorage)) #手续费
+        except:
+            anslist.append(0.0)
         return anslist
         
     def InitInfoList():
