@@ -1146,14 +1146,13 @@ def managerDeduct2(req):
                     ansmap[item.thismanager.id] = [item.thismanager,float(item.money),0,float(item.money)]
             else:
                 FatherContract = contract.objects.filter(id=item.renewal_father_id)[0]
+                newmoney = float(item.money) - float(FatherContract.money)
                 if item.thismanager.id in ansmap:
-                    newmoney = float(item.money) - float(FatherContract.money)
-                    
                     ansmap[item.thismanager.id][1] += (newmoney > 0 and newmoney or 0)
                     ansmap[item.thismanager.id][2] += (newmoney > 0 and float(FatherContract.money) or float(item.money))
                     ansmap[item.thismanager.id][3] += float(item.money)
                 else:
-                    ansmap[item.thismanager.id] = [item.thismanager,0,float(item.money),float(item.money)]
+                    ansmap[item.thismanager.id] = [item.thismanager,(newmoney > 0 and newmoney or 0),(newmoney > 0 and float(FatherContract.money) or float(item.money)),float(item.money)]
         
         return sorted(ansmap.iteritems(),key=lambda asd:asd[1][3],reverse=True)
 
