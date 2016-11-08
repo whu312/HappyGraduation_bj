@@ -1318,10 +1318,10 @@ def performanceDetail(req):
             if renewal_money > float(onecontract.money):
                 renewal_money = float(onecontract.money)
             incnt = 0.0 # 年化续单
-            if onecontract.thisproduct.closedtype == 'm':
-                incnt += float(renewal_money)*onecontract.thisproduct.closedperiod/12
-            elif onecontract.thisproduct.closedtype == 'd':
-                incnt += float(renewal_money)*onecontract.thisproduct.closedperiod/365
+            if son_contract.thisproduct.closedtype == 'm':
+                incnt += float(renewal_money)*son_contract.thisproduct.closedperiod/12
+            elif son_contract.thisproduct.closedtype == 'd':
+                incnt += float(renewal_money)*son_contract.thisproduct.closedperiod/365
             anslist = [1,renewal_money,float(onecontract.money),incnt,1,float(onecontract.money)]
         return anslist
         
