@@ -64,4 +64,6 @@ class repayitem(models.Model):
 class loginfo(models.Model):
     info = models.CharField(max_length = 1024)
     time = models.CharField(max_length = 128)
-    thisuser = models.ForeignKey(User)  
+    thisuser = models.ForeignKey(User) 
+class MinShowMoney(models.Model):
+    money = models.IntegerField()

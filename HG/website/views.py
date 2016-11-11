@@ -688,16 +688,25 @@ def checkcontracts(req):
             thispage += 1
         elif pagetype == 'pageup':
             thispage -= 1
+        
+        contracts = []
+        iShowMoney = int(MinShowMoney.objects.all()[0].money)
+        
         if number=="":
             allcount = 0
             for con in contract.objects.all():
-                if con.status == 1:
+                if con.status == 1 and float(con.money) >= iShowMoney:
                     allcount += 1
+                    contracts.append(con)
+                    
             startpos = ((thispage-1)*ONE_PAGE_NUM if (thispage-1)*ONE_PAGE_NUM<allcount else allcount)
             endpos = (thispage*ONE_PAGE_NUM if thispage*ONE_PAGE_NUM<allcount else allcount)
-            contracts = contract.objects.filter(status = 1).order_by("number")[startpos:endpos]
+            contracts = contracts[startpos:endpos]
         else:
-            contracts = contract.objects.filter(number=number)
+            othercontracts = contract.objects.filter(number=number)
+            for c in othercontracts:
+                if float(c.money) >= iShowMoney:
+                    contracts.append(c)
             allcount = len(contracts)
         if allcount==0:
             allcount = 1
@@ -770,6 +779,7 @@ def rollbackcontract(req):
 def querycontracts(req):
     a = {'user':req.user}
     a["indexlist"] = getindexlist(req)
+    iShowMoney = int(MinShowMoney.objects.all()[0].money)
     if not checkjurisdiction(req,"合同查询"):
         return render_to_response("jur.html",a)
     if checkjurisdiction(req,"合同导出"):
@@ -792,12 +802,21 @@ def querycontracts(req):
         elif pagetype == 'pageup':
             thispage -= 1
         if number=="":
-            allcount = contract.objects.count()
+            allcount = 0
+            allcontract = contract.objects.all()
+            for c in allcontract:
+                if float(c.money) >= iShowMoney:
+                    contracts.append(c)
+            allcount = len(contracts)
             startpos = ((thispage-1)*ONE_PAGE_NUM if (thispage-1)*ONE_PAGE_NUM<allcount else allcount)
             endpos = (thispage*ONE_PAGE_NUM if thispage*ONE_PAGE_NUM<allcount else allcount)
-            contracts = contract.objects.all()[startpos:endpos]
+            contracts = contracts[startpos:endpos]
         else:
             contracts = contract.objects.filter(number=number)
+            othercontracts = contract.objects.filter(number=number)
+            for c in othercontracts:
+                if float(c.money) >= iShowMoney:
+                    contracts.append(c)
         a['curpage'] = thispage
         a['allpage'] = (allcount-1)/ONE_PAGE_NUM + 1
         a['contracts'] = contracts
@@ -822,12 +841,17 @@ def querycontracts(req):
 def lastcheck(req):
     a = {'user':req.user}
     a["indexlist"] = getindexlist(req)
+    iShowMoney = int(MinShowMoney.objects.all()[0].money)
     if not checkjurisdiction(req,"最终审核"):
         return render_to_response("jur.html",a)
     if req.method == "GET":
         fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
         todate = req.GET.get("todate",str(datetime.date.today())) #前一周
-        cons = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,status=2)
+        thiscons = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,status=2)
+        cons = []
+        for c in thiscons:
+            if float(c.money) >= iShowMoney:
+                cons.append(c)
         totalmoney = 0.0
         for con in cons:
             addmoney = 0.0
@@ -847,7 +871,11 @@ def lastcheck(req):
         todate = req.POST.get("todate","")
         status = req.POST.get("status","")
         
-        cons = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,status=2)
+        thiscons = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,status=2)
+        cons = []
+        for c in thiscons:
+            if float(c.money) >= iShowMoney:
+                cons.append(c)
         #print fromdate,todate
         if status=='2':
             for con in cons:
@@ -1083,7 +1111,13 @@ def outcontracts(req):
         w.save(filename)
         return filename
     if req.method == "POST":
-        cs = contract.objects.all()
+        thiscs = contract.objects.all()
+        iShowMoney = int(MinShowMoney.objects.all()[0].money)
+        cs = []
+        for c in thiscs:
+            if float(c.money) > iShowMoney:
+                cs.append(c)
+        
         the_file_name = writefile(cs)
         response = StreamingHttpResponse(file_iterator(the_file_name))
         response['Content-Type'] = 'application/octet-stream'

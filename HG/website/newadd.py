@@ -289,16 +289,21 @@ def repayinterest(req):
 def searchonecontract(req):
     a = {'user':req.user}
     a["indexlist"] = getindexlist(req)
+    iShowMoney = int(MinShowMoney.objects.all()[0].money)
     if not checkjurisdiction(req,"合同搜索"):
         return render_to_response("jur.html",a)
     if req.method == 'GET':
         contracts = []
+        othercontracts = []
         number = req.GET.get("number",'')
         contractbynum = contract.objects.filter(number=number)
         contractbyname = contract.objects.filter(client_name=number)
         if contractbynum.count() == 0:
-            contracts = contractbyname            
+            othercontracts = contractbyname            
         else :
-            contracts = contractbynum 
+            othercontracts = contractbynum 
+        for c in othercontracts:
+            if float(c.money) >= iShowMoney:
+                contracts.append(c)
         a['contracts'] = contracts
         return render_to_response("searchonecontract.html",a)

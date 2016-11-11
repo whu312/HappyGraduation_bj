@@ -25,6 +25,9 @@ class BigpartyAdmin(admin.ModelAdmin):
 class PartyAdmin(admin.ModelAdmin):
     list_display=["name"]
 
+class MinShowMoneyAdmin(admin.ModelAdmin):
+    list_display=["money"]
+
 admin.site.register(product,ProductAdmin)
 admin.site.register(field,FieldAdmin)
 admin.site.register(bigparty,BigpartyAdmin)
@@ -32,3 +35,4 @@ admin.site.register(party,PartyAdmin)
 admin.site.register(manager,ManagerAdmin)
 admin.site.register(contract,ContractAdmin)
 admin.site.register(repayitem,RepayitemAdmin)
+admin.site.register(MinShowMoney,MinShowMoneyAdmin)
