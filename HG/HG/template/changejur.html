@@ -3,6 +3,14 @@
 {% block center %}
 
 {% load bootstrap_toolkit %}
+
+<script>
+function changeuser(userid)
+{
+    window.location.href="/changejur?userid=" + userid;
+}
+</script>
+
 <div class="right">
     <h5>权限调整</h5>
     {% if change_succ %}
@@ -15,11 +23,16 @@
         <form class="form-horizontal" action="" method="post">
             {% csrf_token %}
             
-            <select name="user_id">
+            <select name="user_id" onchange="changeuser(this.value)">
             {%for item in users%}
+            {% ifequal item.id userid%}
+            <option value={{item.id}} selected>{{item.username}}</option>
+            {%else%}
             <option value={{item.id}}>{{item.username}}</option>
+            {%endifequal%}
             {%endfor%}
             </select>
+            
             {{ form|as_bootstrap:"horizontal" }}
             <p class="form-actions">
                 <input type="submit" value="提交" class="btn btn-primary">

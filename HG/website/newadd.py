@@ -191,15 +191,22 @@ def changejur(req):
     if not checkjurisdiction(req,"账户管理"):
         return render_to_response("jur.html",a)
     
-    a['users'] = users.objects.all()
+    alluser = users.objects.all()
+    a['users'] = alluser
     if req.method == 'GET':
-        form = ChangeJurForm()
+        userid = int(req.GET.get("userid","-1"))
+        if userid != -1:
+            thisuser = users.objects.filter(id=userid)[0]
+        else:
+            thisuser = alluser[0]
+        form = ChangeJurForm(initial={"jur":getjurlist(thisuser)})
         a["form"] = form
+        a["userid"] = userid
         return render_to_response('changejur.html', a)
     else:
         form = ChangeJurForm(req.POST)
+        user_id = req.POST.get("user_id","")
         if form.is_valid():
-            user_id = req.POST.get("user_id","")
             thisuser = users.objects.filter(id=int(user_id))
             if not thisuser:
                 return render_to_response("home.html",a)
@@ -212,9 +219,11 @@ def changejur(req):
             thisuser.save()
             a["change_succ"] = "true"
             a["form"] = form
+            a["userid"] = user_id
             return render_to_response('changejur.html', a)
         else:
             a["form"] = form
+            a["userid"] = user_id
             return render_to_response('changejur.html', a)
         
 @checkauth

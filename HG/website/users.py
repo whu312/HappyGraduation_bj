@@ -29,6 +29,17 @@ def checkjurisdiction(req,page):
         return True
     return False
 
+def getjurlist(thisuser):
+    jur = thisuser.jurisdiction
+    cnt = 1
+    anslist = []
+    while jur > 0:
+        if jur & 1:
+            anslist.append(cnt)
+        jur = jur >> 1
+        cnt *= 2
+    return anslist
+
 def checkauth(func):
     def _checkauth(req,*c):
         if req.user.is_authenticated():
