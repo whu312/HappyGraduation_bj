@@ -174,8 +174,9 @@ function makesure(){
             <th>还款金额</th>
             <th>客户名</th>
             <th>操作</th>
-            <th>明细</th>
-            <th>所属合同编号</th>
+            <th>银行</th>
+            <th>开户行</th>
+            <th>银行卡号</th>
           </tr>
         </thead>
         <tbody>
@@ -206,8 +207,9 @@ function makesure(){
                 {%endifequal%}
                 </div>
             </td>
-            <td><a href="/repayitem/{{item.id}}">详情</a></td>
-            <td><a href="/contract/{{item.thiscontract.id}}">{{item.thiscontract.number}}</a></td>            
+            <td>{{item.thiscontract.bank}}</td>
+            <td>{{item.thiscontract.subbranch}}</td>
+            <td>{{item.thiscontract.bank_card}}</td>         
         </tr>
         {%endfor%}
         </tbody>
