@@ -822,15 +822,20 @@ def querycontracts(req):
         a['contracts'] = contracts
         return render_to_response("querycontracts.html",a)
     if req.method == 'POST':
-        contracts = []
+        othercontracts = []
         number = req.POST.get("number",'')
         contractbynum = contract.objects.filter(number=number)
         contractbyname = contract.objects.filter(client_name=number)
         if contractbynum.count() == 0:
-            contracts = contractbyname            
+            othercontracts = contractbyname            
         else :
-            contracts = contractbynum
-        a['contract_size'] = contracts.count() 
+            othercontracts = contractbynum
+        contracts = []
+        for c in othercontracts:
+            if float(c.money) >= iShowMoney:
+                contracts.append(c)
+                
+        a['contract_size'] = len(contracts) 
         a['contracts'] = contracts
         a['curpage'] = 1
         a['allpage'] = 1

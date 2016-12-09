@@ -14,6 +14,14 @@ import json
 from django.http import StreamingHttpResponse
 from pyExcelerator import *
 
+def SelectContract(items):
+    iShowMoney = int(MinShowMoney.objects.all()[0].money)
+    candidate_cons = []
+    for item in items:
+        if float(item.money) >= iShowMoney:
+            candidate_cons.append(item)    
+    return candidate_cons
+
 @csrf_exempt
 @checkauth
 def repayplan(req):
@@ -143,7 +151,7 @@ def getitems(req,lowest_status=4,method="get"):
     else:
         items = contract.objects.filter(startdate__gte=fromdate,startdate__lte=todate,status__gte=lowest_status)
         
-    return items
+    return SelectContract(items)
 
 def GetEnddateItems(req,lowest_status,method="get"):
     if method == "get":
@@ -189,7 +197,7 @@ def GetEnddateItems(req,lowest_status,method="get"):
     else:
         items = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gte=lowest_status)
         
-    return items
+    return SelectContract(items)
 
 @checkauth
 def intocnt(req,a={},type_id=0):
@@ -754,6 +762,7 @@ def cashCnt(req):
         fromdate = req.GET.get("fromdate",str(datetime.date.today()))
         todate = req.GET.get("todate",str(datetime.date.today()+datetime.timedelta(7))) #未来一周
         cs = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1,renewal_son_id=-1)
+        cs = SelectContract(cs)
         daymap = {}
         for item in cs:
             if item.enddate in daymap:
@@ -799,6 +808,7 @@ def daycashCnt(req,onedate):
     if not checkjurisdiction(req,"兑付统计"):
         return render_to_response("jur.html",a)
     items = contract.objects.filter(enddate=onedate,status__gt=-1,renewal_son_id=-1)
+    items = SelectContract(items)
     if req.method == "POST":
         the_file_name = writefile(items)
         response = StreamingHttpResponse(file_iterator(the_file_name))
@@ -942,6 +952,7 @@ def guestCnt(req):
         fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
         todate = req.GET.get("todate",str(datetime.date.today()))
         allc = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
+        allc = SelectContract(allc)
         guestmap = {}
         for eachc in allc:
             if eachc.client_idcard in guestmap:
@@ -957,6 +968,7 @@ def guestCnt(req):
         fromdate = req.POST.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
         todate = req.POST.get("todate",str(datetime.date.today()))
         allc = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
+        allc = SelectContract(allc)
         guestmap = {}
         for eachc in allc:
             if eachc.client_idcard in guestmap:
@@ -1004,6 +1016,7 @@ def singleguestCnt(req):
         fromdate = req.GET.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
         todate = req.GET.get("todate",str(datetime.date.today()))
         allc = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
+        allc = SelectContract(allc)
         guestmap = {}
         for eachc in allc:
             guestmap[eachc.id] = [float(eachc.money),eachc]
@@ -1017,6 +1030,7 @@ def singleguestCnt(req):
         fromdate = req.POST.get("fromdate",str(datetime.date.today()-datetime.timedelta(7)))
         todate = req.POST.get("todate",str(datetime.date.today()))
         allc = contract.objects.filter(enddate__gte=fromdate,enddate__lte=todate,status__gt=-1)
+        allc = SelectContract(allc)
         guestmap = {}
         for eachc in allc:
             guestmap[eachc.id] = [float(eachc.money),eachc]
@@ -1218,7 +1232,7 @@ def deductDetail(req):
         elif itype == "renewal":
             cs = contract.objects.filter(renewal_father_id__gt=-1,startdate__gte=fromdate,startdate__lte=todate,thismanager_id=int(mid))
       
-        a["contracts"] = cs
+        a["contracts"] = SelectContract(cs)
                     
         return render_to_response("deductDetail.html",a)
    
