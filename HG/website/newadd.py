@@ -332,7 +332,7 @@ def ajustcontract(req):
             return render_to_response("ajustcontract.html", a)
         thiscon = cons[0]
         a["contract"] = thiscon
-        a["products"] = product.objects.all()
+        a["products"] = product.objects.filter(closedtype=thiscon.thisproduct.closedtype, closedperiod__gt=thiscon.thisproduct.closedperiod, rate=thiscon.thisproduct.rate)
         return render_to_response("ajustcontract.html", a)
     if req.method == "POST":
         con_num = req.POST.get("number", "")
@@ -340,6 +340,14 @@ def ajustcontract(req):
         if len(cons) <= 0:
             return render_to_response("ajustcontract.html", a)
         thiscon = cons[0]
+        
+        lastitems = repayitem.objects.filter(thiscontract_id=thiscon.id, repaydate=str(thiscon.enddate))
+        for li in lastitems:
+            print li.status
+            if li.status != 1 and li.status != 11:
+                a["msg"] = "调整失败，请检查确认合同"
+                return render_to_response("ajustcontract.html", a)
+        
         product_id = int(req.POST.get("pid", "-1"))
         print product_id
         ps = product.objects.filter(id=product_id)
@@ -349,6 +357,5 @@ def ajustcontract(req):
         thiscon.enddate = AjustProduct4Contract(thiscon, thisproduct)
         thiscon.thisproduct = thisproduct
         thiscon.save()
-        a["msg"] = "success"
+        a["msg"] = "调整成功"
         return render_to_response("ajustcontract.html", a)
-        
