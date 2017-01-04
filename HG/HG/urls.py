@@ -94,5 +94,6 @@ urlpatterns = [
     url(r'^deductDetail$',deductDetail),
     url(r'^managerDeduct2$',managerDeduct2),
     url(r'^performanceDetail$',performanceDetail),
+    url(r'^ajustcontract$',ajustcontract),
     #url(r'^product/([0-9]+)$', getproduct),
 ]

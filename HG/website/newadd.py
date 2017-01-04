@@ -13,6 +13,7 @@ from users import *
 import json
 from django.http import StreamingHttpResponse
 from pyExcelerator import *
+from deal import *
 
 def filterRepayItems(fromdate,todate,contract_number,type_id):
     def item_compare(x,y):
@@ -316,3 +317,38 @@ def searchonecontract(req):
                 contracts.append(c)
         a['contracts'] = contracts
         return render_to_response("searchonecontract.html",a)
+
+@csrf_exempt
+@checkauth
+def ajustcontract(req):
+    a = {'user':req.user}
+    a["indexlist"] = getindexlist(req)
+    if not checkjurisdiction(req,"产品调整"):
+        return render_to_response("jur.html",a)
+    if req.method == "GET":
+        con_num = req.GET.get("number", "")
+        cons = contract.objects.filter(number=con_num)
+        if len(cons) <= 0:
+            return render_to_response("ajustcontract.html", a)
+        thiscon = cons[0]
+        a["contract"] = thiscon
+        a["products"] = product.objects.all()
+        return render_to_response("ajustcontract.html", a)
+    if req.method == "POST":
+        con_num = req.POST.get("number", "")
+        cons = contract.objects.filter(number=con_num)
+        if len(cons) <= 0:
+            return render_to_response("ajustcontract.html", a)
+        thiscon = cons[0]
+        product_id = int(req.POST.get("pid", "-1"))
+        print product_id
+        ps = product.objects.filter(id=product_id)
+        if len(ps) <= 0:
+            return render_to_response("ajustcontract.html", a)
+        thisproduct = ps[0]
+        thiscon.enddate = AjustProduct4Contract(thiscon, thisproduct)
+        thiscon.thisproduct = thisproduct
+        thiscon.save()
+        a["msg"] = "success"
+        return render_to_response("ajustcontract.html", a)
+        

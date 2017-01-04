@@ -208,7 +208,7 @@ def getindexlist(req):
     thisuser = users.objects.filter(thisuser_id=req.user.id)[0]
     limits = 0
     anslist = []
-    if thisuser.jurisdiction & int("10000000000000000000000010111",2):
+    if thisuser.jurisdiction & int("110000000000000000000000010111",2):
         tmplist = []
         if thisuser.jurisdiction & int("1",2):
             tmplist.append(("新增合同","/newcontract"))
@@ -222,6 +222,8 @@ def getindexlist(req):
             tmplist.append(("合同修改","/changecon"))
         if thisuser.jurisdiction & int("10000000000000000000000000000",2):
             tmplist.append(("合同搜索","/searchonecontract"))
+        if thisuser.jurisdiction & int("100000000000000000000000000000",2):
+            tmplist.append(("产品调整","/ajustcontract"))
         anslist.append(("合同管理",tmplist))
     if thisuser.jurisdiction & int("1111000000",2):
         tmplist = []
